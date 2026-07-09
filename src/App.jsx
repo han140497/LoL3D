@@ -14,6 +14,7 @@ import ProductPage from './pages/ProductPage.jsx';
 import QuotePage from './pages/QuotePage.jsx';
 import CartPage from './pages/CartPage.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
+import SculpturePage from './pages/SculpturePage.jsx';
 import { logEvent } from './lib/analytics.js';
 import { EVENT_TYPES } from './lib/constants.js';
 
@@ -41,6 +42,7 @@ export default function App() {
               <Route path="/catalog/:category?" element={<CatalogPage />} />
               <Route path="/product/:slug" element={<ProductPage />} />
               <Route path="/quote" element={<QuotePage />} />
+              <Route path="/sculptures" element={<SculpturePage />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/login" element={<LoginPage />} />

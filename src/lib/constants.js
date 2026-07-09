@@ -32,6 +32,15 @@ export const CATEGORIES = [
   },
 ];
 
+// Custom 3D sculpture commissions — customer uploads a photo, we model it.
+export const SCULPTURE_STYLES = [
+  { id: 'chibi', name: 'Chibi', blurb: 'Big head, tiny body — the cute collectible look.', priceFrom: 1499 },
+  { id: 'cartoon-mini', name: 'Cartoon Miniature', blurb: 'Stylized cartoon version of you, desk-size.', priceFrom: 1799 },
+  { id: 'realistic-bust', name: 'Realistic Bust', blurb: 'A detailed head-and-shoulders portrait sculpt.', priceFrom: 2499 },
+  { id: 'full-figurine', name: 'Full-Body Figurine', blurb: 'You, head to toe — pose it how you like.', priceFrom: 2999 },
+  { id: 'pet', name: 'Pet Figurine', blurb: 'Your dog, cat, or bird as a keepsake sculpt.', priceFrom: 1699 },
+];
+
 export const EVENT_TYPES = {
   PRODUCT_CLICK: 'product_click',
   INSTAGRAM_CLICK: 'instagram_click',

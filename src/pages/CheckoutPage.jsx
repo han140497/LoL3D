@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatINR, INDIAN_STATES, EVENT_TYPES } from '../lib/constants.js';
 import { computeShipping, isValidPincode } from '../lib/shipping.js';
@@ -24,6 +24,16 @@ export default function CheckoutPage() {
     line1: '', line2: '', city: '', state: '', pincode: '',
   });
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
+
+  // Profile loads async after mount — fill name/email once it arrives,
+  // without overwriting anything the customer already typed.
+  useEffect(() => {
+    setForm((f) => ({
+      ...f,
+      name: f.name || (profile?.full_name ?? ''),
+      email: f.email || (user?.email ?? ''),
+    }));
+  }, [user, profile]);
 
   const shipping = computeShipping(form.pincode, subtotal);
   const total = subtotal + (shipping?.cost ?? 0);

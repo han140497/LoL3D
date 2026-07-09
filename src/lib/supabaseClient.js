@@ -8,9 +8,7 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const isSupabaseConfigured = Boolean(url && anonKey);
 
 export const supabase = isSupabaseConfigured
-  ? createClient(url, anonKey, {
-      auth: { persistSession: false }, // public storefront, no user accounts
-    })
+  ? createClient(url, anonKey) // default auth: sessions persist across reloads
   : null;
 
 // Insert-only writes (RLS allows anon insert, never read-back).
@@ -41,18 +39,34 @@ export async function insertQuoteRequest(request) {
   return { ok: true };
 }
 
-export async function uploadQuoteFile(file) {
+async function uploadToBucket(bucket, file) {
   if (!isSupabaseConfigured) {
-    console.info('[LoL3D upload · offline]', file.name, `${(file.size / 1e6).toFixed(1)} MB`);
+    console.info('[LoL3D upload · offline]', bucket, file.name, `${(file.size / 1e6).toFixed(1)} MB`);
     return { ok: true, offline: true, path: `offline/${file.name}` };
   }
   const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-  const { error } = await supabase.storage.from('quote-uploads').upload(path, file);
+  const { error } = await supabase.storage.from(bucket).upload(path, file);
   if (error) {
     console.error('[LoL3D] file upload failed:', error.message);
     return { ok: false, error: error.message };
   }
   return { ok: true, path };
+}
+
+export const uploadQuoteFile = (file) => uploadToBucket('quote-uploads', file);
+export const uploadSculpturePhoto = (file) => uploadToBucket('sculpture-photos', file);
+
+export async function insertSculptureRequest(request) {
+  if (!isSupabaseConfigured) {
+    console.info('[LoL3D sculpture · offline]', request);
+    return { ok: true, offline: true };
+  }
+  const { error } = await supabase.from('sculpture_requests').insert(request);
+  if (error) {
+    console.error('[LoL3D] sculpture request failed:', error.message);
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
 }
 
 export async function fetchProducts() {

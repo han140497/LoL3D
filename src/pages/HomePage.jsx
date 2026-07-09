@@ -3,7 +3,7 @@ import Hero from '../components/home/Hero.jsx';
 import InstaFeedSection from '../components/home/InstaFeedSection.jsx';
 import QuoteCTA from '../components/home/QuoteCTA.jsx';
 import ProductGrid from '../components/catalog/ProductGrid.jsx';
-import { CATEGORIES, EVENT_TYPES } from '../lib/constants.js';
+import { CATEGORIES, EVENT_TYPES, SCULPTURE_STYLES, formatINR } from '../lib/constants.js';
 import { logEvent } from '../lib/analytics.js';
 import { useCatalog } from '../context/CatalogContext.jsx';
 
@@ -43,6 +43,47 @@ function CategorySection({ category, products, loading }) {
   );
 }
 
+function SculptureCTA() {
+  return (
+    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="overflow-hidden rounded-3xl border border-purple-400/30 bg-gradient-to-r from-purple-600/20 via-ink-900 to-brand-600/20 p-8 sm:p-10">
+        <div className="flex flex-wrap items-center justify-between gap-6">
+          <div className="max-w-xl">
+            <p className="text-sm font-semibold uppercase tracking-widest text-purple-300">New</p>
+            <h2 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
+              Become a 3D sculpture
+            </h2>
+            <p className="mt-2 text-slate-300">
+              Upload a photo, pick a style — chibi, cartoon miniature, realistic bust, and more —
+              and we'll sculpt a custom 3D model of you (or your pet) and print it.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {SCULPTURE_STYLES.map((s) => (
+                <span key={s.id} className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-300">
+                  {s.name} · from {formatINR(s.priceFrom)}
+                </span>
+              ))}
+            </div>
+          </div>
+          <Link
+            to="/sculptures"
+            onClick={() =>
+              logEvent(EVENT_TYPES.CATEGORY_CLICK, {
+                targetId: 'sculpture',
+                targetName: 'Custom Sculptures',
+                metadata: { location: 'home_sculpture_cta' },
+              })
+            }
+            className="rounded-full bg-brand-500 px-8 py-3 font-semibold text-white transition-colors hover:bg-brand-600"
+          >
+            Start with a photo →
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   const { products, loading } = useCatalog();
 
@@ -52,7 +93,8 @@ export default function HomePage() {
       {CATEGORIES.map((cat, i) => (
         <div key={cat.id}>
           <CategorySection category={cat} products={products} loading={loading} />
-          {/* Break up the scroll: Insta feed after the second section */}
+          {/* Break up the scroll: sculpture CTA after the first section, Insta feed after the second */}
+          {i === 0 && <SculptureCTA />}
           {i === 1 && <InstaFeedSection />}
         </div>
       ))}

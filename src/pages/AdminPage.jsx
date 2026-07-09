@@ -3,6 +3,8 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { fetchDashboardData } from '../lib/adminData.js';
 import { formatINR } from '../lib/constants.js';
+import ProductsAdmin from '../components/admin/ProductsAdmin.jsx';
+import RequestsAdmin from '../components/admin/RequestsAdmin.jsx';
 
 const BAR = '#fb923c'; // single sequential hue — one series per chart, direct-labeled
 
@@ -92,6 +94,7 @@ export default function AdminPage() {
   const { user, profile, loading, configured } = useAuth();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [tab, setTab] = useState('overview');
 
   const isAdmin = !configured || Boolean(profile?.is_admin); // offline preview allowed
 
@@ -119,27 +122,60 @@ export default function AdminPage() {
     }
   }
 
-  if (error) {
-    return <main className="px-4 py-24 text-center text-red-300">Dashboard failed to load: {error}</main>;
-  }
-  if (!data) {
-    return <main className="px-4 py-24 text-center text-slate-400">Crunching the numbers…</main>;
-  }
+  const TABS = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'products', label: 'Products' },
+    { id: 'requests', label: 'Requests' },
+  ];
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="mt-1 text-slate-400">Last {data.days} days</p>
+          <p className="mt-1 text-slate-400">Last 30 days</p>
         </div>
-        {data.sample && (
+        {data?.sample && (
           <p className="rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-1.5 text-sm font-medium text-amber-300">
             Sample data — connect Supabase to see live numbers
           </p>
         )}
       </div>
 
+      <div className="mt-6 flex gap-2 border-b border-white/10 pb-3" role="tablist">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.id}
+            onClick={() => setTab(t.id)}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+              tab === t.id ? 'bg-brand-500 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'products' && (
+        <div className="mt-6">
+          {configured ? <ProductsAdmin /> : <p className="text-slate-400">Connect Supabase to manage products.</p>}
+        </div>
+      )}
+      {tab === 'requests' && (
+        <div className="mt-6">
+          {configured ? <RequestsAdmin /> : <p className="text-slate-400">Connect Supabase to see customer requests.</p>}
+        </div>
+      )}
+
+      {tab === 'overview' && (error ? (
+        <p className="mt-8 text-center text-red-300">Dashboard failed to load: {error}</p>
+      ) : !data ? (
+        <p className="mt-8 text-center text-slate-400">Crunching the numbers…</p>
+      ) : (
+      <>
       {/* KPI row */}
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
         <StatTile label="Revenue" value={formatINR(data.revenue)} />
@@ -224,6 +260,8 @@ export default function AdminPage() {
           )}
         </Panel>
       </div>
+      </>
+      ))}
     </main>
   );
 }

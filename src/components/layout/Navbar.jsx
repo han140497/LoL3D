@@ -174,6 +174,15 @@ export default function Navbar() {
               {cat.name}
             </NavLink>
           ))}
+          <NavLink
+            to="/sculptures"
+            className={({ isActive }) =>
+              `text-sm font-semibold transition-colors ${isActive ? 'text-brand-400' : 'text-brand-400/80 hover:text-brand-400'}`
+            }
+            onClick={() => trackCategory({ id: 'sculpture', name: 'Custom Sculptures' }, 'navbar')}
+          >
+            ✨ Custom Sculptures
+          </NavLink>
         </div>
       </div>
 
@@ -203,6 +212,16 @@ export default function Navbar() {
                 {cat.name}
               </NavLink>
             ))}
+            <NavLink
+              to="/sculptures"
+              className="rounded-lg px-3 py-2.5 text-sm font-semibold text-brand-400 hover:bg-white/5"
+              onClick={() => {
+                trackCategory({ id: 'sculpture', name: 'Custom Sculptures' }, 'mobile-menu');
+                setMenuOpen(false);
+              }}
+            >
+              ✨ Custom Sculptures
+            </NavLink>
             <div className="mt-3 flex items-center gap-3 px-3">
               <InstagramButton location="mobile-menu" label="Shop our Insta" />
               <Link

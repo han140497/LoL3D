@@ -32,6 +32,10 @@ Payments use Razorpay (UPI / cards / netbanking / wallets): set `VITE_RAZORPAY_K
 
 Custom work goes through `/quote`, which accepts an optional STL/OBJ/3MF/STEP upload into the `quote-uploads` storage bucket and records the request in `quote_requests`.
 
+Custom sculptures go through `/sculptures`: the customer uploads a photo (→ `sculpture-photos` bucket), picks a style (chibi, cartoon miniature, realistic bust, full-body, pet), and gets a confirmation; requests land in `sculpture_requests` and are worked from the admin Requests tab (statuses: new → modeling → preview_sent → confirmed → printed). No payment up front — price is confirmed with the 3D preview.
+
+The admin console (`/admin`) has three tabs: **Overview** (analytics), **Products** (add listings, toggle featured/live), and **Requests** (sculptures + quotes, with signed-URL file access). Existing databases need `supabase/migrations/002_sculptures_and_product_admin.sql` run once.
+
 ## Accounts & admin
 
 Supabase Auth (email + password). Customers get order history at `/account`; orders placed while signed in carry their `user_id`. The admin dashboard at `/admin` shows sales analytics (revenue by day, top sellers, AOV, recent orders) and customer analytics (sessions, conversion, most-clicked products, traffic sources incl. Instagram UTM, devices) for the last 30 days.

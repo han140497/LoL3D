@@ -45,6 +45,21 @@ export default function Footer() {
             <ul className="mt-3 space-y-2">
               <li>
                 <Link
+                  to="/sculptures"
+                  className="text-sm text-slate-300 hover:text-white"
+                  onClick={() =>
+                    logEvent(EVENT_TYPES.CATEGORY_CLICK, {
+                      targetId: 'sculpture',
+                      targetName: 'Custom Sculptures',
+                      metadata: { location: 'footer' },
+                    })
+                  }
+                >
+                  Custom Sculptures
+                </Link>
+              </li>
+              <li>
+                <Link
                   to="/quote"
                   className="text-sm text-slate-300 hover:text-white"
                   onClick={() =>
