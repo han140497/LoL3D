@@ -2,6 +2,10 @@ import { useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { CatalogProvider } from './context/CatalogContext.jsx';
 import { CartProvider } from './context/CartContext.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import AccountPage from './pages/AccountPage.jsx';
+import AdminPage from './pages/AdminPage.jsx';
 import Navbar from './components/layout/Navbar.jsx';
 import Footer from './components/layout/Footer.jsx';
 import HomePage from './pages/HomePage.jsx';
@@ -26,6 +30,7 @@ export default function App() {
   usePageTracking();
 
   return (
+    <AuthProvider>
     <CatalogProvider>
       <CartProvider>
         <div className="flex min-h-screen flex-col">
@@ -38,11 +43,15 @@ export default function App() {
               <Route path="/quote" element={<QuotePage />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/account" element={<AccountPage />} />
+              <Route path="/admin" element={<AdminPage />} />
             </Routes>
           </div>
           <Footer />
         </div>
       </CartProvider>
     </CatalogProvider>
+    </AuthProvider>
   );
 }

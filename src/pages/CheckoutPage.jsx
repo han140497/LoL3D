@@ -6,19 +6,21 @@ import { logEvent } from '../lib/analytics.js';
 import { insertOrder } from '../lib/supabaseClient.js';
 import { isPaymentConfigured, payWithRazorpay } from '../lib/payments.js';
 import { useCart } from '../context/CartContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const inputClass =
   'w-full rounded-xl border border-white/10 bg-ink-900 px-4 py-3 text-white placeholder-slate-500 outline-none transition-colors focus:border-brand-500';
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState(null);
   const [done, setDone] = useState(null); // { total, paid }
 
   const [form, setForm] = useState({
-    name: '', phone: '', email: '',
+    name: profile?.full_name ?? '', phone: '', email: user?.email ?? '',
     line1: '', line2: '', city: '', state: '', pincode: '',
   });
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -64,6 +66,7 @@ export default function CheckoutPage() {
         payment_method: payment.method,
         payment_ref: payment.ref,
         session_id: sessionStorage.getItem('lol3d_session'),
+        user_id: user?.id ?? null,
       });
       if (!saved.ok) throw new Error('Could not save your order. Please try again.');
 

@@ -4,6 +4,23 @@ import { BRAND, CATEGORIES, EVENT_TYPES } from '../../lib/constants.js';
 import { logEvent } from '../../lib/analytics.js';
 import InstagramButton from '../shared/InstagramButton.jsx';
 import { useCart } from '../../context/CartContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
+
+function AccountButton() {
+  const { user } = useAuth();
+  return (
+    <Link
+      to={user ? '/account' : '/login'}
+      className="p-2 text-slate-300 transition-colors hover:text-white"
+      aria-label={user ? 'Your account' : 'Sign in'}
+    >
+      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" />
+      </svg>
+    </Link>
+  );
+}
 
 function CartButton() {
   const { count } = useCart();
@@ -106,12 +123,14 @@ export default function Navbar() {
           >
             Custom Quote
           </Link>
+          <AccountButton />
           <CartButton />
         </div>
 
-        {/* Mobile: IG icon + cart always visible + hamburger */}
+        {/* Mobile: IG icon + account + cart always visible + hamburger */}
         <div className="ml-auto flex items-center gap-1 lg:hidden">
           <InstagramButton location="navbar-mobile" variant="icon" />
+          <AccountButton />
           <CartButton />
           <button
             type="button"

@@ -68,6 +68,7 @@ create table if not exists public.orders (
   payment_method text,                -- razorpay | payment_link_requested
   payment_ref    text,                -- Razorpay payment id
   session_id     text,
+  user_id        uuid references auth.users (id), -- set when a customer is signed in
   metadata       jsonb default '{}'::jsonb
 );
 
@@ -95,39 +96,115 @@ values ('quote-uploads', 'quote-uploads', false, 52428800) -- 50 MB
 on conflict (id) do nothing;
 
 -- ============================================================
--- 5. Row Level Security — the anon (public website) key may
---    only INSERT events/orders/quotes and only READ products.
---    It can never read back or tamper with business data.
+-- 5. Accounts — customer profiles + admin flag
+-- ============================================================
+create table if not exists public.profiles (
+  id         uuid primary key references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  full_name  text,
+  is_admin   boolean not null default false
+);
+
+-- Auto-create a profile row whenever someone signs up.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id, full_name)
+  values (new.id, coalesce(new.raw_user_meta_data ->> 'full_name', ''))
+  on conflict (id) do nothing;
+  return new;
+end $$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- SECURITY DEFINER so RLS policies can check adminship without recursion.
+create or replace function public.is_admin()
+returns boolean
+language sql security definer stable set search_path = public
+as $$
+  select coalesce((select is_admin from public.profiles where id = auth.uid()), false)
+$$;
+
+-- TO MAKE YOURSELF ADMIN: sign up on the site first, then run
+--   update public.profiles set is_admin = true
+--   where id = (select id from auth.users where email = 'YOUR_EMAIL');
+
+-- ============================================================
+-- 6. Row Level Security
+--    Visitors (anon + signed-in customers): INSERT events/orders/
+--    quotes, READ products. Customers additionally read THEIR OWN
+--    orders and profile. Admins read everything + update orders.
 -- ============================================================
 alter table public.click_events   enable row level security;
 alter table public.products       enable row level security;
 alter table public.orders         enable row level security;
 alter table public.quote_requests enable row level security;
+alter table public.profiles       enable row level security;
 
-create policy "anon can log clicks"
+create policy "visitors can log clicks"
   on public.click_events for insert
-  to anon
+  to anon, authenticated
   with check (true);
 
-create policy "anon can read active products"
+create policy "visitors can read active products"
   on public.products for select
-  to anon
+  to anon, authenticated
   using (active = true);
 
-create policy "anon can place orders"
+create policy "visitors can place orders"
   on public.orders for insert
-  to anon
-  with check (true);
+  to anon, authenticated
+  with check (user_id is null or user_id = auth.uid());
 
-create policy "anon can request quotes"
+create policy "visitors can request quotes"
   on public.quote_requests for insert
-  to anon
+  to anon, authenticated
   with check (true);
 
-create policy "anon can upload quote files"
+create policy "visitors can upload quote files"
   on storage.objects for insert
-  to anon
+  to anon, authenticated
   with check (bucket_id = 'quote-uploads');
+
+create policy "users read own profile"
+  on public.profiles for select
+  to authenticated
+  using (id = auth.uid());
+
+create policy "users read own orders"
+  on public.orders for select
+  to authenticated
+  using (user_id = auth.uid());
+
+create policy "admins read all orders"
+  on public.orders for select
+  to authenticated
+  using (public.is_admin());
+
+create policy "admins update orders"
+  on public.orders for update
+  to authenticated
+  using (public.is_admin());
+
+create policy "admins read analytics"
+  on public.click_events for select
+  to authenticated
+  using (public.is_admin());
+
+create policy "admins read quote requests"
+  on public.quote_requests for select
+  to authenticated
+  using (public.is_admin());
+
+create policy "admins read all profiles"
+  on public.profiles for select
+  to authenticated
+  using (public.is_admin());
 
 -- You (via the Dashboard / service role) retain full access automatically.
 --
@@ -136,9 +213,15 @@ create policy "anon can upload quote files"
 --   alter table public.click_events add constraint click_events_event_type_check
 --     check (event_type in ('product_click','instagram_click','quote_click',
 --       'category_click','page_view','add_to_cart','begin_checkout','purchase'));
+--   alter table public.orders add column if not exists user_id uuid references auth.users (id);
+--   drop policy if exists "anon can log clicks" on public.click_events;
+--   drop policy if exists "anon can place orders" on public.orders;
+--   drop policy if exists "anon can request quotes" on public.quote_requests;
+--   drop policy if exists "anon can upload quote files" on storage.objects;
+--   (then re-run section 6 above)
 
 -- ============================================================
--- 6. Seed catalog (edit freely in the Table Editor afterwards)
+-- 7. Seed catalog (edit freely in the Table Editor afterwards)
 --    Samples modeled on popular printables.com designs — check each
 --    model's license before selling prints (many are non-commercial).
 -- ============================================================

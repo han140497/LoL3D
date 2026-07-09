@@ -32,6 +32,14 @@ Payments use Razorpay (UPI / cards / netbanking / wallets): set `VITE_RAZORPAY_K
 
 Custom work goes through `/quote`, which accepts an optional STL/OBJ/3MF/STEP upload into the `quote-uploads` storage bucket and records the request in `quote_requests`.
 
+## Accounts & admin
+
+Supabase Auth (email + password). Customers get order history at `/account`; orders placed while signed in carry their `user_id`. The admin dashboard at `/admin` shows sales analytics (revenue by day, top sellers, AOV, recent orders) and customer analytics (sessions, conversion, most-clicked products, traffic sources incl. Instagram UTM, devices) for the last 30 days.
+
+Admin access is a flag on `profiles`: sign up on the site, then in the Supabase SQL editor run
+`update public.profiles set is_admin = true where id = (select id from auth.users where email = 'YOU');`
+RLS gives admins read access to orders/events/quotes; customers can only read their own rows. Without Supabase configured, `/admin` renders with labeled sample data.
+
 ## Analytics rules
 
 Every product click, Instagram link, category link, and "Get a Quote" button must log an event. Don't attach raw `onClick` logging by hand — use the shared `InstagramButton` / `TrackedLink` components, or call `logEvent(EVENT_TYPES.X, {...})` from `src/lib/analytics.js`. Events are insert-only for the public anon key (enforced by Supabase RLS), so analytics data can't be read or modified from the browser.
