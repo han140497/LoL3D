@@ -81,16 +81,37 @@ function ProductForm({ product, onSaved, onCancel }) {
         )}
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <input required placeholder="Name" value={form.name} onChange={set('name')} className={inputClass} aria-label="Product name" />
-        <select value={form.category} onChange={set('category')} className={inputClass} aria-label="Category">
-          {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        <input required type="number" min="1" placeholder="Base price (₹, PLA)" value={form.price_base} onChange={set('price_base')} className={inputClass} aria-label="Base price in rupees" />
-        <input type="number" min="0" placeholder="PETG surcharge (₹, blank = no PETG)" value={form.petg_surcharge} onChange={set('petg_surcharge')} className={inputClass} aria-label="PETG surcharge" />
-        <input placeholder="Dimensions (e.g. 120 × 80 × 40 mm)" value={form.dimensions} onChange={set('dimensions')} className={inputClass} aria-label="Dimensions" />
-        <input placeholder="Image URL (optional)" value={form.image_url} onChange={set('image_url')} className={inputClass} aria-label="Image URL" />
+        <div>
+          <label htmlFor="p-name" className="mb-1 block text-xs font-medium text-slate-500">Name</label>
+          <input id="p-name" required placeholder="e.g. Curved Headphone Stand" value={form.name} onChange={set('name')} className={inputClass} />
+        </div>
+        <div>
+          <label htmlFor="p-category" className="mb-1 block text-xs font-medium text-slate-500">Category</label>
+          <select id="p-category" value={form.category} onChange={set('category')} className={inputClass}>
+            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="p-price" className="mb-1 block text-xs font-medium text-slate-500">Base price (₹, PLA)</label>
+          <input id="p-price" required type="number" min="1" placeholder="499" value={form.price_base} onChange={set('price_base')} className={inputClass} />
+        </div>
+        <div>
+          <label htmlFor="p-petg" className="mb-1 block text-xs font-medium text-slate-500">PETG surcharge (₹, blank = no PETG option)</label>
+          <input id="p-petg" type="number" min="0" placeholder="100" value={form.petg_surcharge} onChange={set('petg_surcharge')} className={inputClass} />
+        </div>
+        <div>
+          <label htmlFor="p-dimensions" className="mb-1 block text-xs font-medium text-slate-500">Dimensions</label>
+          <input id="p-dimensions" placeholder="120 × 80 × 40 mm" value={form.dimensions} onChange={set('dimensions')} className={inputClass} />
+        </div>
+        <div>
+          <label htmlFor="p-image" className="mb-1 block text-xs font-medium text-slate-500">Image URL (optional)</label>
+          <input id="p-image" placeholder="https://…" value={form.image_url} onChange={set('image_url')} className={inputClass} />
+        </div>
       </div>
-      <textarea required placeholder="Description" rows={2} value={form.description} onChange={set('description')} className={`${inputClass} mt-3`} aria-label="Description" />
+      <div className="mt-3">
+        <label htmlFor="p-description" className="mb-1 block text-xs font-medium text-slate-500">Description</label>
+        <textarea id="p-description" required placeholder="What is it, what's it good for?" rows={2} value={form.description} onChange={set('description')} className={inputClass} />
+      </div>
       <div className="mt-3 flex items-center justify-between">
         <label className="flex items-center gap-2 text-sm text-slate-600">
           <input type="checkbox" checked={form.featured} onChange={set('featured')} className="accent-brand-500" />
