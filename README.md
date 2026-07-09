@@ -24,6 +24,14 @@ src/components/catalog/   ProductGrid, ProductCard, ProductDetail
 src/components/shared/    InstagramButton, TrackedLink — self-tracking wrappers
 ```
 
+## Commerce
+
+Prices are INR; shipping is **domestic (India) only**, tiered by PIN code distance from `SHIPPING.ORIGIN_PINCODE` in `src/lib/constants.js` (set this to the PIN you ship from), with free shipping above the configured subtotal. Cart state lives in localStorage (`src/context/CartContext.jsx`). Orders are inserted into the Supabase `orders` table (insert-only for the anon key).
+
+Payments use Razorpay (UPI / cards / netbanking / wallets): set `VITE_RAZORPAY_KEY_ID` in `.env.local`. Without it, orders are recorded as "payment link requested" and you follow up manually. Before going live with real payments, add server-side order creation + signature verification (Supabase Edge Function) — see the note in `src/lib/payments.js`.
+
+Custom work goes through `/quote`, which accepts an optional STL/OBJ/3MF/STEP upload into the `quote-uploads` storage bucket and records the request in `quote_requests`.
+
 ## Analytics rules
 
 Every product click, Instagram link, category link, and "Get a Quote" button must log an event. Don't attach raw `onClick` logging by hand — use the shared `InstagramButton` / `TrackedLink` components, or call `logEvent(EVENT_TYPES.X, {...})` from `src/lib/analytics.js`. Events are insert-only for the public anon key (enforced by Supabase RLS), so analytics data can't be read or modified from the browser.

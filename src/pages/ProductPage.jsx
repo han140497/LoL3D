@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { CATEGORIES, EVENT_TYPES, INSTAGRAM } from '../lib/constants.js';
-import { logEvent } from '../lib/analytics.js';
+import { CATEGORIES, INSTAGRAM, formatINR } from '../lib/constants.js';
 import { useCatalog } from '../context/CatalogContext.jsx';
+import { useCart } from '../context/CartContext.jsx';
 import ProductImage from '../components/shared/ProductImage.jsx';
 import InstagramButton from '../components/shared/InstagramButton.jsx';
 
 export default function ProductPage() {
   const { slug } = useParams();
   const { products, loading } = useCatalog();
+  const { addItem } = useCart();
   const product = products.find((p) => p.slug === slug);
   const [material, setMaterial] = useState(null);
+  const [justAdded, setJustAdded] = useState(false);
 
   if (loading) {
     return (
@@ -41,13 +43,11 @@ export default function ProductPage() {
   const selected = material ?? product.materials[0];
   const price = Number(product.price_base) + Number(selected.surcharge ?? 0);
 
-  const trackQuote = () =>
-    logEvent(EVENT_TYPES.QUOTE_CLICK, {
-      targetId: product.slug,
-      targetName: `Quote: ${product.name}`,
-      category: product.category,
-      metadata: { location: 'product_page', material: selected.type, price },
-    });
+  const handleAddToCart = () => {
+    addItem(product, selected);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 2500);
+  };
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -85,28 +85,35 @@ export default function ProductPage() {
                     }`}
                   >
                     {m.type}
-                    {Number(m.surcharge) > 0 && ` +$${Number(m.surcharge).toFixed(0)}`}
+                    {Number(m.surcharge) > 0 && ` +${formatINR(m.surcharge)}`}
                   </button>
                 ))}
               </dd>
             </div>
             <div className="flex justify-between border-t border-white/10 pt-4">
               <dt className="text-slate-400">Price ({selected.type})</dt>
-              <dd className="text-2xl font-bold text-white">${price.toFixed(2)}</dd>
+              <dd className="text-2xl font-bold text-white">{formatINR(price)}</dd>
             </div>
           </dl>
 
-          <div className="mt-8">
-            <Link
-              to={`/quote?print=${product.slug}&material=${selected.type}`}
-              onClick={trackQuote}
-              className="inline-block rounded-full bg-brand-500 px-8 py-3 font-semibold text-white transition-colors hover:bg-brand-600"
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className={`rounded-full px-8 py-3 font-semibold text-white transition-colors ${
+                justAdded ? 'bg-emerald-600' : 'bg-brand-500 hover:bg-brand-600'
+              }`}
             >
-              Order / Get a Quote
-            </Link>
+              {justAdded ? '✓ Added to Cart' : 'Add to Cart'}
+            </button>
+            {justAdded && (
+              <Link to="/cart" className="font-semibold text-brand-400 hover:text-brand-500">
+                View Cart →
+              </Link>
+            )}
           </div>
           <p className="mt-4 flex items-center gap-1 text-sm text-slate-500">
-            Every piece is printed to order. Questions first?
+            Printed to order · ships across India. Questions first?
             <InstagramButton location="product_page" label={`DM ${INSTAGRAM.handle}`} variant="ghost" className="!px-1 !py-0" />
           </p>
         </div>

@@ -3,6 +3,25 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { BRAND, CATEGORIES, EVENT_TYPES } from '../../lib/constants.js';
 import { logEvent } from '../../lib/analytics.js';
 import InstagramButton from '../shared/InstagramButton.jsx';
+import { useCart } from '../../context/CartContext.jsx';
+
+function CartButton() {
+  const { count } = useCart();
+  return (
+    <Link to="/cart" className="relative p-2 text-slate-300 transition-colors hover:text-white" aria-label={`Cart, ${count} item${count === 1 ? '' : 's'}`}>
+      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="9" cy="21" r="1.5" />
+        <circle cx="18" cy="21" r="1.5" />
+        <path d="M2.5 3h2l2.5 12.5a1.5 1.5 0 0 0 1.5 1.2h8.8a1.5 1.5 0 0 0 1.5-1.2L21 7H6" />
+      </svg>
+      {count > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-500 px-1 text-xs font-bold text-white">
+          {count}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 function Logo() {
   return (
@@ -83,15 +102,17 @@ export default function Navbar() {
           <Link
             to="/quote"
             onClick={() => trackQuote('navbar')}
-            className="rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
+            className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-brand-500 hover:text-white"
           >
-            Get a Quote
+            Custom Quote
           </Link>
+          <CartButton />
         </div>
 
-        {/* Mobile: IG icon always visible + hamburger */}
+        {/* Mobile: IG icon + cart always visible + hamburger */}
         <div className="ml-auto flex items-center gap-1 lg:hidden">
           <InstagramButton location="navbar-mobile" variant="icon" />
+          <CartButton />
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
@@ -171,9 +192,9 @@ export default function Navbar() {
                   trackQuote('mobile-menu');
                   setMenuOpen(false);
                 }}
-                className="rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
+                className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-slate-200 hover:border-brand-500 hover:text-white"
               >
-                Get a Quote
+                Custom Quote
               </Link>
             </div>
           </div>

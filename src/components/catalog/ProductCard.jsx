@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { EVENT_TYPES, CATEGORIES } from '../../lib/constants.js';
+import { EVENT_TYPES, CATEGORIES, formatINR } from '../../lib/constants.js';
 import { logEvent } from '../../lib/analytics.js';
 import ProductImage from '../shared/ProductImage.jsx';
 
@@ -35,7 +35,7 @@ export default function ProductCard({ product }) {
         </h3>
         <div className="mt-2 flex items-center justify-between">
           <span className="text-lg font-bold text-white">
-            ${Number(product.price_base).toFixed(2)}
+            {formatINR(product.price_base)}
             <span className="ml-1 text-xs font-normal text-slate-400">from</span>
           </span>
           <span className="flex gap-1">

@@ -38,4 +38,34 @@ export const EVENT_TYPES = {
   QUOTE_CLICK: 'quote_click',
   CATEGORY_CLICK: 'category_click',
   PAGE_VIEW: 'page_view',
+  ADD_TO_CART: 'add_to_cart',
+  BEGIN_CHECKOUT: 'begin_checkout',
+  PURCHASE: 'purchase',
 };
+
+// All prices are INR. Domestic (India-only) shipping.
+export function formatINR(amount) {
+  return `₹${Number(amount).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+}
+
+// Shipping is tiered by how far the delivery PIN code is from ours.
+// TODO: set ORIGIN_PINCODE to the PIN code you ship from.
+export const SHIPPING = {
+  ORIGIN_PINCODE: '500001',
+  FREE_ABOVE: 1999, // order subtotal for free shipping
+  RATES: {
+    local: 49, // same city (first 3 PIN digits match)
+    zone: 79, // same postal zone (first digit matches)
+    national: 119, // rest of India
+  },
+};
+
+export const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa',
+  'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',
+  'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland',
+  'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+  'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+  'Andaman & Nicobar Islands', 'Chandigarh', 'Dadra & Nagar Haveli and Daman & Diu',
+  'Delhi', 'Jammu & Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry',
+];

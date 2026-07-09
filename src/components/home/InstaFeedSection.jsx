@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { INSTAGRAM, EVENT_TYPES } from '../../lib/constants.js';
+import { INSTAGRAM, EVENT_TYPES, formatINR } from '../../lib/constants.js';
 import { logEvent } from '../../lib/analytics.js';
 import InstagramButton from '../shared/InstagramButton.jsx';
 import ProductImage from '../shared/ProductImage.jsx';
@@ -52,7 +52,7 @@ export default function InstaFeedSection() {
               <ProductImage product={product} className="transition-transform duration-300 group-hover:scale-105" />
               <span className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
                 <span className="text-xs font-medium text-white">
-                  {product.name} · ${Number(product.price_base).toFixed(0)}
+                  {product.name} · {formatINR(product.price_base)}
                 </span>
               </span>
             </Link>
