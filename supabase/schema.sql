@@ -130,9 +130,14 @@ as $$
   select coalesce((select is_admin from public.profiles where id = auth.uid()), false)
 $$;
 
--- TO MAKE YOURSELF ADMIN: sign up on the site first, then run
+-- TO GRANT ADMIN ACCESS: each admin must sign up on the site first
+-- (the trigger above creates their profile row), then run:
 --   update public.profiles set is_admin = true
---   where id = (select id from auth.users where email = 'YOUR_EMAIL');
+--   where id in (select id from auth.users
+--                where email in ('admin1@example.com', 'admin2@example.com'));
+-- Verify with:
+--   select p.is_admin, u.email from public.profiles p
+--   join auth.users u on u.id = p.id;
 
 -- ============================================================
 -- 6. Row Level Security
