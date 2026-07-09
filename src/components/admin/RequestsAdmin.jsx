@@ -56,6 +56,21 @@ export default function RequestsAdmin() {
     setSculptures((prev) => prev.map((r) => (r.id === req.id ? { ...r, status } : r)));
   };
 
+  // Deletes the request row, then best-effort removes its uploaded file.
+  const deleteRequest = async ({ table, bucket, req, filePath, setList }) => {
+    if (!window.confirm(`Delete this request from ${req.name}? This can't be undone.`)) return;
+    const { error: e } = await supabase.from(table).delete().eq('id', req.id);
+    if (e) {
+      return setError(
+        e.message.includes('policy') || e.message.includes('permission')
+          ? `${e.message} — run supabase/migrations/003 in the SQL editor to enable deleting.`
+          : e.message,
+      );
+    }
+    if (filePath) await supabase.storage.from(bucket).remove([filePath]); // best effort
+    setList((prev) => prev.filter((r) => r.id !== req.id));
+  };
+
   if (error) {
     return (
       <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -104,6 +119,13 @@ export default function RequestsAdmin() {
                       {s.replaceAll('_', ' ')}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => deleteRequest({ table: 'sculpture_requests', bucket: 'sculpture-photos', req: r, filePath: r.photo_path, setList: setSculptures })}
+                    className="ml-auto rounded-full px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+                  >
+                    Delete
+                  </button>
                 </div>
               </li>
             ))}
@@ -131,8 +153,15 @@ export default function RequestsAdmin() {
                   </div>
                 </div>
                 <p className="mt-2 text-sm text-slate-600">{r.idea}</p>
-                <div className="mt-2">
+                <div className="mt-2 flex items-center gap-3">
                   <FileLink bucket="quote-uploads" path={r.file_path} label="Download model file →" />
+                  <button
+                    type="button"
+                    onClick={() => deleteRequest({ table: 'quote_requests', bucket: 'quote-uploads', req: r, filePath: r.file_path, setList: setQuotes })}
+                    className="ml-auto rounded-full px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+                  >
+                    Delete
+                  </button>
                 </div>
               </li>
             ))}

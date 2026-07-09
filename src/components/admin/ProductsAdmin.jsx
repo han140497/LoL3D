@@ -13,8 +13,22 @@ const EMPTY = {
   dimensions: '', description: '', image_url: '', featured: false,
 };
 
-function AddProductForm({ onAdded }) {
-  const [form, setForm] = useState(EMPTY);
+// One form for both adding and editing. `product` = null → add mode.
+function ProductForm({ product, onSaved, onCancel }) {
+  const [form, setForm] = useState(() => {
+    if (!product) return EMPTY;
+    const petg = (product.materials ?? []).find((m) => m.type === 'PETG');
+    return {
+      name: product.name,
+      category: product.category,
+      price_base: String(product.price_base),
+      petg_surcharge: petg ? String(petg.surcharge) : '',
+      dimensions: product.dimensions ?? '',
+      description: product.description ?? '',
+      image_url: product.image_url ?? '',
+      featured: product.featured,
+    };
+  });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -29,8 +43,7 @@ function AddProductForm({ onAdded }) {
     if (form.petg_surcharge !== '') {
       materials.push({ type: 'PETG', surcharge: Number(form.petg_surcharge) });
     }
-    const { error: insertError } = await supabase.from('products').insert({
-      slug: slugify(form.name),
+    const row = {
       name: form.name,
       category: form.category,
       price_base: Number(form.price_base),
@@ -39,23 +52,34 @@ function AddProductForm({ onAdded }) {
       image_url: form.image_url || null,
       featured: form.featured,
       materials,
-      active: true,
-    });
+    };
+    // Slug is only set on create — existing product URLs stay stable.
+    const query = product
+      ? supabase.from('products').update(row).eq('id', product.id)
+      : supabase.from('products').insert({ ...row, slug: slugify(form.name), active: true });
+    const { error: saveError } = await query;
     setBusy(false);
-    if (insertError) {
+    if (saveError) {
       return setError(
-        insertError.message.includes('duplicate')
+        saveError.message.includes('duplicate')
           ? 'A product with this name/slug already exists.'
-          : insertError.message,
+          : saveError.message,
       );
     }
-    setForm(EMPTY);
-    onAdded();
+    if (!product) setForm(EMPTY);
+    onSaved();
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200 bg-white p-5">
-      <h3 className="font-semibold text-slate-900">Add a product</h3>
+    <form onSubmit={handleSubmit} className={`rounded-2xl border p-5 ${product ? 'border-brand-300 bg-brand-50/40' : 'border-slate-200 bg-white'}`}>
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-slate-900">{product ? `Editing: ${product.name}` : 'Add a product'}</h3>
+        {product && (
+          <button type="button" onClick={onCancel} className="text-sm text-slate-500 hover:text-slate-900">
+            Cancel
+          </button>
+        )}
+      </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <input required placeholder="Name" value={form.name} onChange={set('name')} className={inputClass} aria-label="Product name" />
         <select value={form.category} onChange={set('category')} className={inputClass} aria-label="Category">
@@ -73,7 +97,7 @@ function AddProductForm({ onAdded }) {
           Featured (shows in the Insta grid)
         </label>
         <button type="submit" disabled={busy} className="rounded-full bg-brand-500 px-6 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50">
-          {busy ? 'Adding…' : 'Add product'}
+          {busy ? 'Saving…' : product ? 'Save changes' : 'Add product'}
         </button>
       </div>
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
@@ -83,6 +107,7 @@ function AddProductForm({ onAdded }) {
 
 export default function ProductsAdmin() {
   const [products, setProducts] = useState(null);
+  const [editing, setEditing] = useState(null); // product being edited, or null
   const [error, setError] = useState(null);
 
   const load = () => {
@@ -114,7 +139,12 @@ export default function ProductsAdmin() {
 
   return (
     <div className="space-y-6">
-      <AddProductForm onAdded={load} />
+      <ProductForm
+        key={editing?.id ?? 'new'}
+        product={editing}
+        onSaved={() => { setEditing(null); load(); }}
+        onCancel={() => setEditing(null)}
+      />
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white p-5">
         <table className="w-full text-left text-sm">
@@ -124,7 +154,8 @@ export default function ProductsAdmin() {
               <th className="pb-2 pr-4 font-medium">Category</th>
               <th className="pb-2 pr-4 font-medium">Price</th>
               <th className="pb-2 pr-4 font-medium">Featured</th>
-              <th className="pb-2 font-medium">Active</th>
+              <th className="pb-2 pr-4 font-medium">Active</th>
+              <th className="pb-2 font-medium"><span className="sr-only">Edit</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -138,9 +169,18 @@ export default function ProductsAdmin() {
                     {p.featured ? '★ Featured' : 'Feature'}
                   </button>
                 </td>
-                <td className="py-2.5">
+                <td className="py-2.5 pr-4">
                   <button type="button" onClick={() => toggle(p, 'active')} className={`rounded-full px-3 py-1 text-xs font-semibold ${p.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500 hover:text-slate-600'}`}>
                     {p.active ? 'Live' : 'Hidden'}
+                  </button>
+                </td>
+                <td className="py-2.5">
+                  <button
+                    type="button"
+                    onClick={() => { setEditing(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    className="rounded-full px-3 py-1 text-xs font-semibold text-brand-600 hover:bg-brand-50"
+                  >
+                    Edit
                   </button>
                 </td>
               </tr>
