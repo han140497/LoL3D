@@ -46,7 +46,9 @@ Every product click, Instagram link, category link, and "Get a Quote" button mus
 
 ## Deploying
 
-The repo is Vercel-ready (`vercel.json` handles SPA routing, so deep links like `/product/flexi-dragon` work when shared on Instagram). Import the GitHub repo at [vercel.com/new](https://vercel.com/new) — every push to `main` auto-deploys. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the Vercel project settings to enable live data.
+**Current hosting: GitHub Pages** at https://han140497.github.io/LoL3D/ — run `npm run deploy` (needs `.env.local` present, since env values are baked in at build time). Production builds use the `/LoL3D/` base path; `404.html` provides the SPA fallback for deep links.
+
+Alternatively the repo is Vercel-ready (`vercel.json` handles SPA routing): import it at [vercel.com/new](https://vercel.com/new), set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in project settings, and every push to `main` auto-deploys. If you switch to Vercel, change `base` in `vite.config.js` back to `/`.
 
 Point the Instagram bio link at the deployed site with `?utm_source=instagram&utm_medium=bio` — UTM params are captured per visit and attached to every analytics event, so quote requests can be attributed to IG.
 
