@@ -1,27 +1,41 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { CatalogProvider } from './context/CatalogContext.jsx';
 import Navbar from './components/layout/Navbar.jsx';
-import { BRAND } from './lib/constants.js';
+import Footer from './components/layout/Footer.jsx';
+import HomePage from './pages/HomePage.jsx';
+import CatalogPage from './pages/CatalogPage.jsx';
+import ProductPage from './pages/ProductPage.jsx';
+import QuotePage from './pages/QuotePage.jsx';
+import { logEvent } from './lib/analytics.js';
+import { EVENT_TYPES } from './lib/constants.js';
 
-// Placeholder pages — each gets built out as its own step.
-function Placeholder({ title }) {
-  return (
-    <main className="mx-auto max-w-7xl px-4 py-24 text-center sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold text-white">{title}</h1>
-      <p className="mt-3 text-slate-400">{BRAND.tagline}</p>
-    </main>
-  );
+// Log a page_view on every route change and reset scroll position.
+function usePageTracking() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    logEvent(EVENT_TYPES.PAGE_VIEW, { targetId: pathname });
+  }, [pathname]);
 }
 
 export default function App() {
+  usePageTracking();
+
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Placeholder title={`Welcome to ${BRAND.fullName}`} />} />
-        <Route path="/catalog/:category?" element={<Placeholder title="Catalog" />} />
-        <Route path="/product/:slug" element={<Placeholder title="Product" />} />
-        <Route path="/quote" element={<Placeholder title="Get a Quote" />} />
-      </Routes>
-    </div>
+    <CatalogProvider>
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <div className="flex-1">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/catalog/:category?" element={<CatalogPage />} />
+            <Route path="/product/:slug" element={<ProductPage />} />
+            <Route path="/quote" element={<QuotePage />} />
+          </Routes>
+        </div>
+        <Footer />
+      </div>
+    </CatalogProvider>
   );
 }

@@ -1,0 +1,117 @@
+import { useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { CATEGORIES, EVENT_TYPES, INSTAGRAM } from '../lib/constants.js';
+import { logEvent } from '../lib/analytics.js';
+import { useCatalog } from '../context/CatalogContext.jsx';
+import ProductImage from '../components/shared/ProductImage.jsx';
+import InstagramButton from '../components/shared/InstagramButton.jsx';
+
+export default function ProductPage() {
+  const { slug } = useParams();
+  const { products, loading } = useCatalog();
+  const product = products.find((p) => p.slug === slug);
+  const [material, setMaterial] = useState(null);
+
+  if (loading) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-2">
+          <div className="aspect-square animate-pulse rounded-3xl bg-white/5" />
+          <div className="space-y-4 py-8">
+            <div className="h-8 w-2/3 animate-pulse rounded bg-white/5" />
+            <div className="h-4 w-full animate-pulse rounded bg-white/5" />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!product) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-24 text-center sm:px-6 lg:px-8">
+        <h1 className="text-2xl font-bold text-white">We couldn't find that print.</h1>
+        <Link to="/catalog" className="mt-4 inline-block text-brand-400 hover:text-brand-500">
+          ← Back to the catalog
+        </Link>
+      </main>
+    );
+  }
+
+  const categoryName = CATEGORIES.find((c) => c.id === product.category)?.name;
+  const selected = material ?? product.materials[0];
+  const price = Number(product.price_base) + Number(selected.surcharge ?? 0);
+
+  const trackQuote = () =>
+    logEvent(EVENT_TYPES.QUOTE_CLICK, {
+      targetId: product.slug,
+      targetName: `Quote: ${product.name}`,
+      category: product.category,
+      metadata: { location: 'product_page', material: selected.type, price },
+    });
+
+  return (
+    <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <Link to={`/catalog/${product.category}`} className="text-sm text-slate-400 hover:text-white">
+        ← {categoryName}
+      </Link>
+
+      <div className="mt-6 grid gap-10 lg:grid-cols-2">
+        <div className="aspect-square overflow-hidden rounded-3xl border border-white/10">
+          <ProductImage product={product} />
+        </div>
+
+        <div className="py-2">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-400">{categoryName}</p>
+          <h1 className="mt-2 text-3xl font-extrabold text-white sm:text-4xl">{product.name}</h1>
+          <p className="mt-4 text-lg text-slate-300">{product.description}</p>
+
+          <dl className="mt-8 space-y-4 border-t border-white/10 pt-6">
+            <div className="flex justify-between">
+              <dt className="text-slate-400">Dimensions</dt>
+              <dd className="font-medium text-white">{product.dimensions ?? 'Made to order'}</dd>
+            </div>
+            <div className="flex items-center justify-between">
+              <dt className="text-slate-400">Material</dt>
+              <dd className="flex gap-2">
+                {product.materials.map((m) => (
+                  <button
+                    key={m.type}
+                    type="button"
+                    onClick={() => setMaterial(m)}
+                    className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+                      selected.type === m.type
+                        ? 'bg-brand-500 text-white'
+                        : 'bg-white/5 text-slate-300 hover:bg-white/10'
+                    }`}
+                  >
+                    {m.type}
+                    {Number(m.surcharge) > 0 && ` +$${Number(m.surcharge).toFixed(0)}`}
+                  </button>
+                ))}
+              </dd>
+            </div>
+            <div className="flex justify-between border-t border-white/10 pt-4">
+              <dt className="text-slate-400">Price ({selected.type})</dt>
+              <dd className="text-2xl font-bold text-white">${price.toFixed(2)}</dd>
+            </div>
+          </dl>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              to={`/quote?print=${product.slug}&material=${selected.type}`}
+              onClick={trackQuote}
+              className="rounded-full bg-brand-500 px-8 py-3 font-semibold text-white transition-colors hover:bg-brand-600"
+            >
+              Order / Get a Quote
+            </Link>
+            <InstagramButton location="product_page" label="DM us on Instagram" variant="ghost" />
+          </div>
+          <p className="mt-4 text-sm text-slate-500">
+            Every piece is printed to order — mention <span className="text-slate-300">{product.name}</span> when
+            you DM {INSTAGRAM.handle}.
+          </p>
+        </div>
+      </div>
+    </main>
+  );
+}
