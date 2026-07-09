@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create *)",
+      "Bash(npx -y --cache /private/tmp/claude-501/-Users-han-LoL3D/08b12714-e8a1-4012-9ff7-2b0252676478/scratchpad/npm-cache create-vite@latest . --template react)",
+      "Bash(npm install *)",
+      "Bash(gh auth *)",
+      "Bash(git --version)",
+      "Bash(brew --version)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Read(//Users/han/**)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'Initial commit: LoL3D storefront foundation *)"
+    ]
+  }
+}
