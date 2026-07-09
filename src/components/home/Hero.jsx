@@ -16,7 +16,7 @@ export default function Hero() {
     });
 
   return (
-    <section className="relative overflow-hidden border-b border-white/10">
+    <section className="relative overflow-hidden border-b border-slate-200">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         {Array.from({ length: 6 }).map((_, i) => (
           <div
@@ -30,16 +30,16 @@ export default function Hero() {
 
       <div className="relative mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-4 py-10 sm:px-6 lg:px-8">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-brand-400">
+          <p className="text-xs font-semibold uppercase tracking-widest text-brand-600">
             {BRAND.fullName}
           </p>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
             Your ideas,{' '}
-            <span className="bg-gradient-to-r from-brand-400 to-orange-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-brand-600 to-orange-500 bg-clip-text text-transparent">
               built layer by layer.
             </span>
           </h1>
-          <p className="mt-2 max-w-xl text-slate-300">
+          <p className="mt-2 max-w-xl text-slate-600">
             Printed to order in PLA or PETG, finished by hand, shipped to your door.
           </p>
         </div>

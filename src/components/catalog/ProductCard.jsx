@@ -18,7 +18,7 @@ export default function ProductCard({ product }) {
     <Link
       to={`/product/${product.slug}`}
       onClick={handleClick}
-      className="group overflow-hidden rounded-2xl border border-white/10 bg-ink-900 transition-all duration-200 hover:-translate-y-1 hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/10"
+      className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-200 hover:-translate-y-1 hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/10"
     >
       <div className="relative aspect-square overflow-hidden">
         <ProductImage product={product} className="transition-transform duration-300 group-hover:scale-105" />
@@ -29,18 +29,18 @@ export default function ProductCard({ product }) {
         )}
       </div>
       <div className="p-4">
-        <p className="text-xs font-medium uppercase tracking-wider text-brand-400">{categoryName}</p>
-        <h3 className="mt-1 font-semibold text-white group-hover:text-brand-400 transition-colors">
+        <p className="text-xs font-medium uppercase tracking-wider text-brand-600">{categoryName}</p>
+        <h3 className="mt-1 font-semibold text-slate-900 group-hover:text-brand-600 transition-colors">
           {product.name}
         </h3>
         <div className="mt-2 flex items-center justify-between">
-          <span className="text-lg font-bold text-white">
+          <span className="text-lg font-bold text-slate-900">
             {formatINR(product.price_base)}
-            <span className="ml-1 text-xs font-normal text-slate-400">from</span>
+            <span className="ml-1 text-xs font-normal text-slate-500">from</span>
           </span>
           <span className="flex gap-1">
             {product.materials.map((m) => (
-              <span key={m.type} className="rounded bg-white/5 px-1.5 py-0.5 text-[10px] font-medium text-slate-300">
+              <span key={m.type} className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
                 {m.type}
               </span>
             ))}

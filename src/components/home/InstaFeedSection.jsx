@@ -25,15 +25,15 @@ export default function InstaFeedSection() {
     });
 
   return (
-    <section className="border-y border-white/10 bg-ink-900/50">
+    <section className="border-y border-slate-200 bg-slate-50">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-widest text-brand-400">
+            <p className="text-sm font-semibold uppercase tracking-widest text-brand-600">
               As seen on {INSTAGRAM.handle}
             </p>
-            <h2 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Shop our Insta</h2>
-            <p className="mt-2 max-w-lg text-slate-400">
+            <h2 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl">Shop our Insta</h2>
+            <p className="mt-2 max-w-lg text-slate-500">
               Every print on our feed is right here — tap a tile to see specs and order.
             </p>
           </div>
@@ -46,7 +46,7 @@ export default function InstaFeedSection() {
               key={product.slug}
               to={`/product/${product.slug}`}
               onClick={() => trackTile(product)}
-              className="group relative aspect-square overflow-hidden rounded-xl border border-white/10"
+              className="group relative aspect-square overflow-hidden rounded-xl border border-slate-200"
               aria-label={`${product.name} — view and order`}
             >
               <ProductImage product={product} className="transition-transform duration-300 group-hover:scale-105" />

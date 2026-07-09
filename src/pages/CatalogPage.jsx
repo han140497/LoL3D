@@ -30,8 +30,8 @@ export default function CatalogPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold text-white">{heading}</h1>
-      <p className="mt-2 max-w-2xl text-slate-400">
+      <h1 className="text-3xl font-bold text-slate-900">{heading}</h1>
+      <p className="mt-2 max-w-2xl text-slate-500">
         {query
           ? `${visible.length} print${visible.length === 1 ? '' : 's'} found`
           : activeCategory

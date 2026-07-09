@@ -6,13 +6,13 @@ import { formatINR } from '../lib/constants.js';
 import ProductsAdmin from '../components/admin/ProductsAdmin.jsx';
 import RequestsAdmin from '../components/admin/RequestsAdmin.jsx';
 
-const BAR = '#fb923c'; // single sequential hue — one series per chart, direct-labeled
+const BAR = '#ea580c'; // single sequential hue (≥3:1 on white) — one series per chart, direct-labeled
 
 function StatTile({ label, value, hint }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-ink-900 p-5">
-      <p className="text-sm text-slate-400">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-white">{value}</p>
+    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+      <p className="text-sm text-slate-500">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-slate-900">{value}</p>
       {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
     </div>
   );
@@ -20,8 +20,8 @@ function StatTile({ label, value, hint }) {
 
 function Panel({ title, children }) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-ink-900 p-5">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">{title}</h2>
+    <section className="rounded-2xl border border-slate-200 bg-white p-5">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">{title}</h2>
       <div className="mt-4">{children}</div>
     </section>
   );
@@ -43,16 +43,16 @@ function RevenueChart({ data }) {
               className="w-full rounded-t transition-opacity group-hover:opacity-80"
               style={{
                 height: `${Math.max((d.revenue / max) * 100, d.revenue > 0 ? 3 : 1)}%`,
-                background: d.revenue > 0 ? BAR : 'rgba(255,255,255,0.08)',
+                background: d.revenue > 0 ? BAR : '#e2e8f0',
               }}
             />
-            <div className="pointer-events-none absolute -top-9 left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap rounded-lg border border-white/10 bg-ink-800 px-2 py-1 text-xs text-white shadow-lg group-hover:block">
+            <div className="pointer-events-none absolute -top-9 left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 shadow-lg group-hover:block">
               {fmtDay(d.day)} · {formatINR(d.revenue)}
             </div>
           </div>
         ))}
       </div>
-      <div className="mt-2 flex justify-between border-t border-white/10 pt-1 text-xs text-slate-500">
+      <div className="mt-2 flex justify-between border-t border-slate-200 pt-1 text-xs text-slate-500">
         <span>{fmtDay(data[0].day)}</span>
         <span>{fmtDay(data[data.length - 1].day)}</span>
       </div>
@@ -69,10 +69,10 @@ function BarList({ rows, valueFmt = (v) => v }) {
       {rows.map((row) => (
         <li key={row.name}>
           <div className="flex items-baseline justify-between gap-2 text-sm">
-            <span className="min-w-0 truncate text-slate-300">{row.name}</span>
-            <span className="shrink-0 font-semibold text-white">{valueFmt(row.value)}</span>
+            <span className="min-w-0 truncate text-slate-600">{row.name}</span>
+            <span className="shrink-0 font-semibold text-slate-900">{valueFmt(row.value)}</span>
           </div>
-          <div className="mt-1 h-2 rounded-full bg-white/5">
+          <div className="mt-1 h-2 rounded-full bg-slate-100">
             <div className="h-2 rounded-full" style={{ width: `${(row.value / max) * 100}%`, background: BAR }} />
           </div>
         </li>
@@ -82,12 +82,12 @@ function BarList({ rows, valueFmt = (v) => v }) {
 }
 
 const STATUS_STYLES = {
-  placed: 'bg-slate-500/20 text-slate-300',
-  paid: 'bg-emerald-500/20 text-emerald-300',
-  printing: 'bg-brand-500/20 text-brand-400',
-  shipped: 'bg-sky-500/20 text-sky-300',
-  delivered: 'bg-emerald-500/20 text-emerald-300',
-  cancelled: 'bg-red-500/20 text-red-300',
+  placed: 'bg-slate-200 text-slate-600',
+  paid: 'bg-emerald-100 text-emerald-700',
+  printing: 'bg-brand-100 text-brand-600',
+  shipped: 'bg-sky-100 text-sky-700',
+  delivered: 'bg-emerald-100 text-emerald-700',
+  cancelled: 'bg-red-100 text-red-700',
 };
 
 export default function AdminPage() {
@@ -105,18 +105,18 @@ export default function AdminPage() {
 
   if (configured) {
     if (loading || (user && !profile)) {
-      return <main className="px-4 py-24 text-center text-slate-400">Loading…</main>;
+      return <main className="px-4 py-24 text-center text-slate-500">Loading…</main>;
     }
     if (!user) return <Navigate to="/login" state={{ from: '/admin' }} replace />;
     if (!profile.is_admin) {
       return (
         <main className="mx-auto max-w-md px-4 py-24 text-center sm:px-6">
-          <h1 className="text-2xl font-bold text-white">Admins only</h1>
-          <p className="mt-3 text-slate-400">
+          <h1 className="text-2xl font-bold text-slate-900">Admins only</h1>
+          <p className="mt-3 text-slate-500">
             This account doesn't have dashboard access. If that's wrong, flip your
-            <code className="mx-1 rounded bg-white/10 px-1">is_admin</code> flag in Supabase.
+            <code className="mx-1 rounded bg-slate-200 px-1">is_admin</code> flag in Supabase.
           </p>
-          <Link to="/" className="mt-6 inline-block text-brand-400 hover:text-brand-500">← Back to the shop</Link>
+          <Link to="/" className="mt-6 inline-block text-brand-600 hover:text-brand-700">← Back to the shop</Link>
         </main>
       );
     }
@@ -132,17 +132,17 @@ export default function AdminPage() {
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="mt-1 text-slate-400">Last 30 days</p>
+          <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
+          <p className="mt-1 text-slate-500">Last 30 days</p>
         </div>
         {data?.sample && (
-          <p className="rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-1.5 text-sm font-medium text-amber-300">
+          <p className="rounded-full border border-amber-300 bg-amber-50 px-4 py-1.5 text-sm font-medium text-amber-700">
             Sample data — connect Supabase to see live numbers
           </p>
         )}
       </div>
 
-      <div className="mt-6 flex gap-2 border-b border-white/10 pb-3" role="tablist">
+      <div className="mt-6 flex gap-2 border-b border-slate-200 pb-3" role="tablist">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -151,7 +151,7 @@ export default function AdminPage() {
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
             className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
-              tab === t.id ? 'bg-brand-500 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'
+              tab === t.id ? 'bg-brand-500 text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
             {t.label}
@@ -161,19 +161,19 @@ export default function AdminPage() {
 
       {tab === 'products' && (
         <div className="mt-6">
-          {configured ? <ProductsAdmin /> : <p className="text-slate-400">Connect Supabase to manage products.</p>}
+          {configured ? <ProductsAdmin /> : <p className="text-slate-500">Connect Supabase to manage products.</p>}
         </div>
       )}
       {tab === 'requests' && (
         <div className="mt-6">
-          {configured ? <RequestsAdmin /> : <p className="text-slate-400">Connect Supabase to see customer requests.</p>}
+          {configured ? <RequestsAdmin /> : <p className="text-slate-500">Connect Supabase to see customer requests.</p>}
         </div>
       )}
 
       {tab === 'overview' && (error ? (
-        <p className="mt-8 text-center text-red-300">Dashboard failed to load: {error}</p>
+        <p className="mt-8 text-center text-red-700">Dashboard failed to load: {error}</p>
       ) : !data ? (
-        <p className="mt-8 text-center text-slate-400">Crunching the numbers…</p>
+        <p className="mt-8 text-center text-slate-500">Crunching the numbers…</p>
       ) : (
       <>
       {/* KPI row */}
@@ -226,7 +226,7 @@ export default function AdminPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-500">
+                  <tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                     <th className="pb-2 pr-4 font-medium">Date</th>
                     <th className="pb-2 pr-4 font-medium">Customer</th>
                     <th className="pb-2 pr-4 font-medium">Items</th>
@@ -235,23 +235,23 @@ export default function AdminPage() {
                     <th className="pb-2 text-right font-medium">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-slate-100">
                   {data.recentOrders.map((o) => (
                     <tr key={o.id}>
-                      <td className="py-2.5 pr-4 text-slate-400">
+                      <td className="py-2.5 pr-4 text-slate-500">
                         {new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                       </td>
-                      <td className="py-2.5 pr-4 text-white">{o.customer_name}</td>
-                      <td className="max-w-56 truncate py-2.5 pr-4 text-slate-300">
+                      <td className="py-2.5 pr-4 text-slate-900">{o.customer_name}</td>
+                      <td className="max-w-56 truncate py-2.5 pr-4 text-slate-600">
                         {(o.items ?? []).map((i) => `${i.name} ×${i.qty}`).join(', ')}
                       </td>
-                      <td className="py-2.5 pr-4 text-slate-400">{o.city}</td>
+                      <td className="py-2.5 pr-4 text-slate-500">{o.city}</td>
                       <td className="py-2.5 pr-4">
                         <span className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${STATUS_STYLES[o.status] ?? STATUS_STYLES.placed}`}>
                           {o.status}
                         </span>
                       </td>
-                      <td className="py-2.5 text-right font-semibold text-white">{formatINR(o.total)}</td>
+                      <td className="py-2.5 text-right font-semibold text-slate-900">{formatINR(o.total)}</td>
                     </tr>
                   ))}
                 </tbody>

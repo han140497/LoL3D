@@ -20,6 +20,6 @@ html {
 }
 
 body {
-  @apply bg-ink-950 text-slate-100 antialiased;
+  @apply bg-white text-slate-900 antialiased;
   font-family: var(--font-display);
 }

@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabaseClient.js';
 import { CATEGORIES, formatINR } from '../../lib/constants.js';
 
 const inputClass =
-  'w-full rounded-lg border border-white/10 bg-ink-950 px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-brand-500';
+  'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-brand-500';
 
 const slugify = (name) =>
   name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -54,8 +54,8 @@ function AddProductForm({ onAdded }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl border border-white/10 bg-ink-900 p-5">
-      <h3 className="font-semibold text-white">Add a product</h3>
+    <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200 bg-white p-5">
+      <h3 className="font-semibold text-slate-900">Add a product</h3>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <input required placeholder="Name" value={form.name} onChange={set('name')} className={inputClass} aria-label="Product name" />
         <select value={form.category} onChange={set('category')} className={inputClass} aria-label="Category">
@@ -68,7 +68,7 @@ function AddProductForm({ onAdded }) {
       </div>
       <textarea required placeholder="Description" rows={2} value={form.description} onChange={set('description')} className={`${inputClass} mt-3`} aria-label="Description" />
       <div className="mt-3 flex items-center justify-between">
-        <label className="flex items-center gap-2 text-sm text-slate-300">
+        <label className="flex items-center gap-2 text-sm text-slate-600">
           <input type="checkbox" checked={form.featured} onChange={set('featured')} className="accent-brand-500" />
           Featured (shows in the Insta grid)
         </label>
@@ -76,7 +76,7 @@ function AddProductForm({ onAdded }) {
           {busy ? 'Adding…' : 'Add product'}
         </button>
       </div>
-      {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
     </form>
   );
 }
@@ -105,21 +105,21 @@ export default function ProductsAdmin() {
 
   if (error) {
     return (
-      <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+      <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
         {error} — if this mentions a missing policy, run supabase/migrations/002 in the SQL editor.
       </p>
     );
   }
-  if (!products) return <p className="text-slate-400">Loading products…</p>;
+  if (!products) return <p className="text-slate-500">Loading products…</p>;
 
   return (
     <div className="space-y-6">
       <AddProductForm onAdded={load} />
 
-      <div className="overflow-x-auto rounded-2xl border border-white/10 bg-ink-900 p-5">
+      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white p-5">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-500">
+            <tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
               <th className="pb-2 pr-4 font-medium">Product</th>
               <th className="pb-2 pr-4 font-medium">Category</th>
               <th className="pb-2 pr-4 font-medium">Price</th>
@@ -127,19 +127,19 @@ export default function ProductsAdmin() {
               <th className="pb-2 font-medium">Active</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-slate-100">
             {products.map((p) => (
               <tr key={p.id} className={p.active ? '' : 'opacity-50'}>
-                <td className="py-2.5 pr-4 text-white">{p.name}</td>
-                <td className="py-2.5 pr-4 text-slate-400">{CATEGORIES.find((c) => c.id === p.category)?.name ?? p.category}</td>
-                <td className="py-2.5 pr-4 text-slate-300">{formatINR(p.price_base)}</td>
+                <td className="py-2.5 pr-4 text-slate-900">{p.name}</td>
+                <td className="py-2.5 pr-4 text-slate-500">{CATEGORIES.find((c) => c.id === p.category)?.name ?? p.category}</td>
+                <td className="py-2.5 pr-4 text-slate-600">{formatINR(p.price_base)}</td>
                 <td className="py-2.5 pr-4">
-                  <button type="button" onClick={() => toggle(p, 'featured')} className={`rounded-full px-3 py-1 text-xs font-semibold ${p.featured ? 'bg-brand-500/20 text-brand-400' : 'bg-white/5 text-slate-500 hover:text-slate-300'}`}>
+                  <button type="button" onClick={() => toggle(p, 'featured')} className={`rounded-full px-3 py-1 text-xs font-semibold ${p.featured ? 'bg-brand-100 text-brand-600' : 'bg-slate-100 text-slate-500 hover:text-slate-600'}`}>
                     {p.featured ? '★ Featured' : 'Feature'}
                   </button>
                 </td>
                 <td className="py-2.5">
-                  <button type="button" onClick={() => toggle(p, 'active')} className={`rounded-full px-3 py-1 text-xs font-semibold ${p.active ? 'bg-emerald-500/20 text-emerald-300' : 'bg-white/5 text-slate-500 hover:text-slate-300'}`}>
+                  <button type="button" onClick={() => toggle(p, 'active')} className={`rounded-full px-3 py-1 text-xs font-semibold ${p.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500 hover:text-slate-600'}`}>
                     {p.active ? 'Live' : 'Hidden'}
                   </button>
                 </td>

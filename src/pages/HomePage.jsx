@@ -18,12 +18,12 @@ function CategorySection({ category, products, loading }) {
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white sm:text-2xl">{category.name}</h2>
-          <p className="mt-1 text-sm text-slate-400">{category.blurb}</p>
+          <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">{category.name}</h2>
+          <p className="mt-1 text-sm text-slate-500">{category.blurb}</p>
         </div>
         <Link
           to={`/catalog/${category.id}`}
-          className="shrink-0 text-sm font-semibold text-brand-400 hover:text-brand-500"
+          className="shrink-0 text-sm font-semibold text-brand-600 hover:text-brand-700"
           onClick={() =>
             logEvent(EVENT_TYPES.CATEGORY_CLICK, {
               targetId: category.id,
@@ -46,20 +46,20 @@ function CategorySection({ category, products, loading }) {
 function SculptureCTA() {
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="overflow-hidden rounded-3xl border border-purple-400/30 bg-gradient-to-r from-purple-600/20 via-ink-900 to-brand-600/20 p-8 sm:p-10">
+      <div className="overflow-hidden rounded-3xl border border-purple-200 bg-gradient-to-r from-purple-50 via-white to-brand-50 p-8 sm:p-10">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="max-w-xl">
-            <p className="text-sm font-semibold uppercase tracking-widest text-purple-300">New</p>
-            <h2 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
+            <p className="text-sm font-semibold uppercase tracking-widest text-purple-600">New</p>
+            <h2 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl">
               Become a 3D sculpture
             </h2>
-            <p className="mt-2 text-slate-300">
+            <p className="mt-2 text-slate-600">
               Upload a photo, pick a style — chibi, cartoon miniature, realistic bust, and more —
               and we'll sculpt a custom 3D model of you (or your pet) and print it.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               {SCULPTURE_STYLES.map((s) => (
-                <span key={s.id} className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-300">
+                <span key={s.id} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">
                   {s.name} · from {formatINR(s.priceFrom)}
                 </span>
               ))}

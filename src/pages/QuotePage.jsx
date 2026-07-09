@@ -5,7 +5,7 @@ import { insertQuoteRequest, uploadQuoteFile } from '../lib/supabaseClient.js';
 import InstagramButton from '../components/shared/InstagramButton.jsx';
 
 const inputClass =
-  'w-full rounded-xl border border-white/10 bg-ink-900 px-4 py-3 text-white placeholder-slate-500 outline-none transition-colors focus:border-brand-500';
+  'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition-colors focus:border-brand-500';
 
 const ACCEPTED_EXTENSIONS = ['.stl', '.obj', '.3mf', '.step', '.stp'];
 const MAX_FILE_MB = 50;
@@ -74,8 +74,8 @@ export default function QuotePage() {
     return (
       <main className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6">
         <div className="text-5xl">🎉</div>
-        <h1 className="mt-4 text-3xl font-bold text-white">Request received!</h1>
-        <p className="mt-3 text-slate-300">
+        <h1 className="mt-4 text-3xl font-bold text-slate-900">Request received!</h1>
+        <p className="mt-3 text-slate-600">
           Thanks, {form.name.split(' ')[0] || 'friend'} — we'll get back to you within a day with a
           price and timeline.
         </p>
@@ -91,55 +91,55 @@ export default function QuotePage() {
 
   return (
     <main className="mx-auto max-w-xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold text-white">Custom Print Quote</h1>
-      <p className="mt-2 text-slate-400">
+      <h1 className="text-3xl font-bold text-slate-900">Custom Print Quote</h1>
+      <p className="mt-2 text-slate-500">
         For anything not in the catalog — your own design, a repair part, a one-off gift.
         Upload an STL if you have one, or just describe the idea.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-5">
         <div>
-          <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-slate-300">
+          <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-slate-600">
             Your name
           </label>
           <input id="name" required value={form.name} onChange={set('name')} className={inputClass} placeholder="Jane Maker" />
         </div>
         <div>
-          <label htmlFor="contact" className="mb-1.5 block text-sm font-medium text-slate-300">
+          <label htmlFor="contact" className="mb-1.5 block text-sm font-medium text-slate-600">
             Phone, email, or Instagram handle
           </label>
           <input id="contact" required value={form.contact} onChange={set('contact')} className={inputClass} placeholder="9876543210 or @janemaker" />
         </div>
         <div>
-          <label htmlFor="idea" className="mb-1.5 block text-sm font-medium text-slate-300">
+          <label htmlFor="idea" className="mb-1.5 block text-sm font-medium text-slate-600">
             What should we print?
           </label>
           <textarea id="idea" required rows={5} value={form.idea} onChange={set('idea')} className={inputClass} placeholder="Describe the piece: size, color, material (PLA/PETG), quantity, deadline…" />
         </div>
         <div>
-          <label htmlFor="stl" className="mb-1.5 block text-sm font-medium text-slate-300">
+          <label htmlFor="stl" className="mb-1.5 block text-sm font-medium text-slate-600">
             3D model file (optional)
           </label>
           <label
             htmlFor="stl"
-            className="flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-dashed border-white/20 bg-ink-900 px-4 py-6 text-sm text-slate-400 transition-colors hover:border-brand-500 hover:text-slate-300"
+            className="flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-sm text-slate-500 transition-colors hover:border-brand-500 hover:text-slate-600"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 16V4m0 0l-4 4m4-4l4 4" />
               <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
             </svg>
             {file ? (
-              <span className="text-white">{file.name} ({(file.size / 1e6).toFixed(1)} MB)</span>
+              <span className="text-slate-900">{file.name} ({(file.size / 1e6).toFixed(1)} MB)</span>
             ) : (
               <span>Upload STL / OBJ / 3MF / STEP — max {MAX_FILE_MB} MB</span>
             )}
           </label>
           <input id="stl" type="file" accept={ACCEPTED_EXTENSIONS.join(',')} onChange={handleFile} className="sr-only" />
-          {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
+          {fileError && <p className="mt-1.5 text-xs text-red-600">{fileError}</p>}
         </div>
 
         {error && (
-          <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p>
+          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
         )}
 
         <button

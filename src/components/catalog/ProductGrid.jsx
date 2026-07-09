@@ -5,7 +5,7 @@ export default function ProductGrid({ products, loading }) {
     return (
       <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="aspect-[3/4] animate-pulse rounded-2xl bg-white/5" />
+          <div key={i} className="aspect-[3/4] animate-pulse rounded-2xl bg-slate-100" />
         ))}
       </div>
     );
@@ -13,7 +13,7 @@ export default function ProductGrid({ products, loading }) {
 
   if (products.length === 0) {
     return (
-      <p className="py-16 text-center text-slate-400">
+      <p className="py-16 text-center text-slate-500">
         Nothing in this category yet — check back soon or DM us on Instagram for a custom print.
       </p>
     );

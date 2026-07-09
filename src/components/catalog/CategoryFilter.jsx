@@ -6,7 +6,7 @@ const pillClass = (isActive) =>
   `rounded-full px-4 py-2 text-sm font-medium transition-colors ${
     isActive
       ? 'bg-brand-500 text-white'
-      : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
   }`;
 
 export default function CategoryFilter() {

@@ -31,9 +31,9 @@ export default function InstagramButton({ location, label, variant = 'solid', cl
     solid:
       'bg-gradient-to-r from-fuchsia-600 via-pink-500 to-orange-400 text-white px-4 py-2 text-sm hover:opacity-90',
     ghost:
-      'text-slate-300 hover:text-white px-3 py-2 text-sm',
+      'text-slate-600 hover:text-slate-900 px-3 py-2 text-sm',
     icon:
-      'text-slate-300 hover:text-white p-2',
+      'text-slate-600 hover:text-slate-900 p-2',
   };
 
   return (

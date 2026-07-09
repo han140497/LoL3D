@@ -9,7 +9,7 @@ import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const inputClass =
-  'w-full rounded-xl border border-white/10 bg-ink-900 px-4 py-3 text-white placeholder-slate-500 outline-none transition-colors focus:border-brand-500';
+  'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition-colors focus:border-brand-500';
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
@@ -98,8 +98,8 @@ export default function CheckoutPage() {
     return (
       <main className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6">
         <div className="text-5xl">📦</div>
-        <h1 className="mt-4 text-3xl font-bold text-white">Order placed!</h1>
-        <p className="mt-3 text-slate-300">
+        <h1 className="mt-4 text-3xl font-bold text-slate-900">Order placed!</h1>
+        <p className="mt-3 text-slate-600">
           {done.paid
             ? `Payment of ${formatINR(done.total)} received — we're firing up the printers. You'll get shipping updates on WhatsApp/SMS.`
             : `Your order for ${formatINR(done.total)} is in. We'll send you a UPI payment link on WhatsApp/SMS to confirm it.`}
@@ -118,8 +118,8 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <main className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6">
-        <h1 className="text-2xl font-bold text-white">Nothing to check out yet.</h1>
-        <Link to="/catalog" className="mt-4 inline-block text-brand-400 hover:text-brand-500">
+        <h1 className="text-2xl font-bold text-slate-900">Nothing to check out yet.</h1>
+        <Link to="/catalog" className="mt-4 inline-block text-brand-600 hover:text-brand-700">
           ← Back to the catalog
         </Link>
       </main>
@@ -128,56 +128,56 @@ export default function CheckoutPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold text-white">Checkout</h1>
-      <p className="mt-2 text-slate-400">Domestic shipping only — we currently deliver across India.</p>
+      <h1 className="text-3xl font-bold text-slate-900">Checkout</h1>
+      <p className="mt-2 text-slate-500">Domestic shipping only — we currently deliver across India.</p>
 
       <div className="mt-8 grid gap-10 lg:grid-cols-5">
         {/* Address + payment */}
         <form onSubmit={handleSubmit} className="space-y-5 lg:col-span-3">
-          <h2 className="text-lg font-semibold text-white">Delivery address</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Delivery address</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-slate-300">Full name</label>
+              <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-slate-600">Full name</label>
               <input id="name" required value={form.name} onChange={set('name')} className={inputClass} autoComplete="name" />
             </div>
             <div>
-              <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-slate-300">Phone (for delivery updates)</label>
+              <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-slate-600">Phone (for delivery updates)</label>
               <input id="phone" required type="tel" pattern="[6-9][0-9]{9}" title="10-digit Indian mobile number" value={form.phone} onChange={set('phone')} className={inputClass} autoComplete="tel-national" placeholder="9876543210" />
             </div>
           </div>
           <div>
-            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-300">Email (optional)</label>
+            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-600">Email (optional)</label>
             <input id="email" type="email" value={form.email} onChange={set('email')} className={inputClass} autoComplete="email" />
           </div>
           <div>
-            <label htmlFor="line1" className="mb-1.5 block text-sm font-medium text-slate-300">Address line 1</label>
+            <label htmlFor="line1" className="mb-1.5 block text-sm font-medium text-slate-600">Address line 1</label>
             <input id="line1" required value={form.line1} onChange={set('line1')} className={inputClass} autoComplete="address-line1" placeholder="Flat / house no., building, street" />
           </div>
           <div>
-            <label htmlFor="line2" className="mb-1.5 block text-sm font-medium text-slate-300">Address line 2 (optional)</label>
+            <label htmlFor="line2" className="mb-1.5 block text-sm font-medium text-slate-600">Address line 2 (optional)</label>
             <input id="line2" value={form.line2} onChange={set('line2')} className={inputClass} autoComplete="address-line2" placeholder="Area, landmark" />
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label htmlFor="city" className="mb-1.5 block text-sm font-medium text-slate-300">City</label>
+              <label htmlFor="city" className="mb-1.5 block text-sm font-medium text-slate-600">City</label>
               <input id="city" required value={form.city} onChange={set('city')} className={inputClass} autoComplete="address-level2" />
             </div>
             <div>
-              <label htmlFor="state" className="mb-1.5 block text-sm font-medium text-slate-300">State / UT</label>
+              <label htmlFor="state" className="mb-1.5 block text-sm font-medium text-slate-600">State / UT</label>
               <select id="state" required value={form.state} onChange={set('state')} className={inputClass}>
                 <option value="" disabled>Select…</option>
                 {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
-              <label htmlFor="pincode" className="mb-1.5 block text-sm font-medium text-slate-300">PIN code</label>
+              <label htmlFor="pincode" className="mb-1.5 block text-sm font-medium text-slate-600">PIN code</label>
               <input id="pincode" required inputMode="numeric" maxLength={6} value={form.pincode} onChange={set('pincode')} className={inputClass} autoComplete="postal-code" placeholder="500001" />
-              {pincodeInvalid && <p className="mt-1 text-xs text-red-400">That doesn't look like a valid Indian PIN code.</p>}
+              {pincodeInvalid && <p className="mt-1 text-xs text-red-600">That doesn't look like a valid Indian PIN code.</p>}
             </div>
           </div>
 
           {error && (
-            <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p>
+            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
           )}
 
           <button
@@ -199,30 +199,30 @@ export default function CheckoutPage() {
         </form>
 
         {/* Order summary */}
-        <aside className="h-fit rounded-2xl border border-white/10 bg-ink-900 p-6 lg:col-span-2">
-          <h2 className="text-lg font-semibold text-white">Order summary</h2>
+        <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-2">
+          <h2 className="text-lg font-semibold text-slate-900">Order summary</h2>
           <ul className="mt-4 space-y-2 text-sm">
             {items.map((line) => (
-              <li key={`${line.slug}-${line.material}`} className="flex justify-between gap-2 text-slate-300">
+              <li key={`${line.slug}-${line.material}`} className="flex justify-between gap-2 text-slate-600">
                 <span className="min-w-0 truncate">{line.name} ({line.material}) × {line.qty}</span>
-                <span className="shrink-0 font-medium text-white">{formatINR(line.unitPrice * line.qty)}</span>
+                <span className="shrink-0 font-medium text-slate-900">{formatINR(line.unitPrice * line.qty)}</span>
               </li>
             ))}
           </ul>
-          <dl className="mt-4 space-y-2 border-t border-white/10 pt-4 text-sm">
-            <div className="flex justify-between text-slate-300">
+          <dl className="mt-4 space-y-2 border-t border-slate-200 pt-4 text-sm">
+            <div className="flex justify-between text-slate-600">
               <dt>Subtotal</dt>
-              <dd className="font-medium text-white">{formatINR(subtotal)}</dd>
+              <dd className="font-medium text-slate-900">{formatINR(subtotal)}</dd>
             </div>
-            <div className="flex justify-between text-slate-300">
+            <div className="flex justify-between text-slate-600">
               <dt>Shipping{shipping ? ` — ${shipping.label}` : ''}</dt>
-              <dd className="font-medium text-white">
+              <dd className="font-medium text-slate-900">
                 {shipping ? (shipping.cost === 0 ? 'FREE' : formatINR(shipping.cost)) : 'Enter PIN code'}
               </dd>
             </div>
-            <div className="flex justify-between border-t border-white/10 pt-3 text-base">
-              <dt className="font-semibold text-white">Total</dt>
-              <dd className="text-xl font-bold text-white">{shipping ? formatINR(total) : '—'}</dd>
+            <div className="flex justify-between border-t border-slate-200 pt-3 text-base">
+              <dt className="font-semibold text-slate-900">Total</dt>
+              <dd className="text-xl font-bold text-slate-900">{shipping ? formatINR(total) : '—'}</dd>
             </div>
           </dl>
         </aside>

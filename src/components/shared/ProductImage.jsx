@@ -39,7 +39,7 @@ export default function ProductImage({ product, className = '' }) {
   return (
     <div
       className={`flex h-full w-full items-center justify-center ${className}`}
-      style={{ background: `linear-gradient(135deg, ${art.from}22, ${art.to}66)` }}
+      style={{ background: `linear-gradient(135deg, ${art.from}14, ${art.to}30)` }}
       role="img"
       aria-label={`${product.name} — photo coming soon`}
     >

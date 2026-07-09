@@ -18,10 +18,10 @@ export default function ProductPage() {
     return (
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-2">
-          <div className="aspect-square animate-pulse rounded-3xl bg-white/5" />
+          <div className="aspect-square animate-pulse rounded-3xl bg-slate-100" />
           <div className="space-y-4 py-8">
-            <div className="h-8 w-2/3 animate-pulse rounded bg-white/5" />
-            <div className="h-4 w-full animate-pulse rounded bg-white/5" />
+            <div className="h-8 w-2/3 animate-pulse rounded bg-slate-100" />
+            <div className="h-4 w-full animate-pulse rounded bg-slate-100" />
           </div>
         </div>
       </main>
@@ -31,8 +31,8 @@ export default function ProductPage() {
   if (!product) {
     return (
       <main className="mx-auto max-w-7xl px-4 py-24 text-center sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold text-white">We couldn't find that print.</h1>
-        <Link to="/catalog" className="mt-4 inline-block text-brand-400 hover:text-brand-500">
+        <h1 className="text-2xl font-bold text-slate-900">We couldn't find that print.</h1>
+        <Link to="/catalog" className="mt-4 inline-block text-brand-600 hover:text-brand-700">
           ← Back to the catalog
         </Link>
       </main>
@@ -51,27 +51,27 @@ export default function ProductPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <Link to={`/catalog/${product.category}`} className="text-sm text-slate-400 hover:text-white">
+      <Link to={`/catalog/${product.category}`} className="text-sm text-slate-500 hover:text-slate-900">
         ← {categoryName}
       </Link>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-2">
-        <div className="aspect-square overflow-hidden rounded-3xl border border-white/10">
+        <div className="aspect-square overflow-hidden rounded-3xl border border-slate-200">
           <ProductImage product={product} />
         </div>
 
         <div className="py-2">
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-400">{categoryName}</p>
-          <h1 className="mt-2 text-3xl font-extrabold text-white sm:text-4xl">{product.name}</h1>
-          <p className="mt-4 text-lg text-slate-300">{product.description}</p>
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-600">{categoryName}</p>
+          <h1 className="mt-2 text-3xl font-extrabold text-slate-900 sm:text-4xl">{product.name}</h1>
+          <p className="mt-4 text-lg text-slate-600">{product.description}</p>
 
-          <dl className="mt-8 space-y-4 border-t border-white/10 pt-6">
+          <dl className="mt-8 space-y-4 border-t border-slate-200 pt-6">
             <div className="flex justify-between">
-              <dt className="text-slate-400">Dimensions</dt>
-              <dd className="font-medium text-white">{product.dimensions ?? 'Made to order'}</dd>
+              <dt className="text-slate-500">Dimensions</dt>
+              <dd className="font-medium text-slate-900">{product.dimensions ?? 'Made to order'}</dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-slate-400">Material</dt>
+              <dt className="text-slate-500">Material</dt>
               <dd className="flex gap-2">
                 {product.materials.map((m) => (
                   <button
@@ -81,7 +81,7 @@ export default function ProductPage() {
                     className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
                       selected.type === m.type
                         ? 'bg-brand-500 text-white'
-                        : 'bg-white/5 text-slate-300 hover:bg-white/10'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
                     {m.type}
@@ -90,9 +90,9 @@ export default function ProductPage() {
                 ))}
               </dd>
             </div>
-            <div className="flex justify-between border-t border-white/10 pt-4">
-              <dt className="text-slate-400">Price ({selected.type})</dt>
-              <dd className="text-2xl font-bold text-white">{formatINR(price)}</dd>
+            <div className="flex justify-between border-t border-slate-200 pt-4">
+              <dt className="text-slate-500">Price ({selected.type})</dt>
+              <dd className="text-2xl font-bold text-slate-900">{formatINR(price)}</dd>
             </div>
           </dl>
 
@@ -107,7 +107,7 @@ export default function ProductPage() {
               {justAdded ? '✓ Added to Cart' : 'Add to Cart'}
             </button>
             {justAdded && (
-              <Link to="/cart" className="font-semibold text-brand-400 hover:text-brand-500">
+              <Link to="/cart" className="font-semibold text-brand-600 hover:text-brand-700">
                 View Cart →
               </Link>
             )}

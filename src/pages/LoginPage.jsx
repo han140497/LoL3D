@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const inputClass =
-  'w-full rounded-xl border border-white/10 bg-ink-900 px-4 py-3 text-white placeholder-slate-500 outline-none transition-colors focus:border-brand-500';
+  'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition-colors focus:border-brand-500';
 
 export default function LoginPage() {
   const { user, configured, signIn, signUp } = useAuth();
@@ -21,12 +21,12 @@ export default function LoginPage() {
   if (!configured) {
     return (
       <main className="mx-auto max-w-md px-4 py-24 text-center sm:px-6">
-        <h1 className="text-2xl font-bold text-white">Accounts aren't set up yet</h1>
-        <p className="mt-3 text-slate-400">
+        <h1 className="text-2xl font-bold text-slate-900">Accounts aren't set up yet</h1>
+        <p className="mt-3 text-slate-500">
           Customer login needs the Supabase backend connected. You can still shop and check out
           as a guest — accounts add order history on top.
         </p>
-        <Link to="/catalog" className="mt-6 inline-block text-brand-400 hover:text-brand-500">
+        <Link to="/catalog" className="mt-6 inline-block text-brand-600 hover:text-brand-700">
           ← Keep shopping
         </Link>
       </main>
@@ -42,9 +42,9 @@ export default function LoginPage() {
     return (
       <main className="mx-auto max-w-md px-4 py-24 text-center sm:px-6">
         <div className="text-5xl">📬</div>
-        <h1 className="mt-4 text-2xl font-bold text-white">Check your email</h1>
-        <p className="mt-3 text-slate-400">
-          We sent a confirmation link to <span className="text-white">{form.email}</span>. Click it,
+        <h1 className="mt-4 text-2xl font-bold text-slate-900">Check your email</h1>
+        <p className="mt-3 text-slate-500">
+          We sent a confirmation link to <span className="text-slate-900">{form.email}</span>. Click it,
           then sign in here.
         </p>
       </main>
@@ -67,10 +67,10 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold text-white">
+      <h1 className="text-3xl font-bold text-slate-900">
         {mode === 'signin' ? 'Sign in' : 'Create your account'}
       </h1>
-      <p className="mt-2 text-slate-400">
+      <p className="mt-2 text-slate-500">
         {mode === 'signin'
           ? 'Track your orders and check out faster.'
           : 'One account for order history and faster checkout.'}
@@ -79,16 +79,16 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         {mode === 'signup' && (
           <div>
-            <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-slate-300">Full name</label>
+            <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-slate-600">Full name</label>
             <input id="name" required value={form.name} onChange={set('name')} className={inputClass} autoComplete="name" />
           </div>
         )}
         <div>
-          <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-300">Email</label>
+          <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-600">Email</label>
           <input id="email" required type="email" value={form.email} onChange={set('email')} className={inputClass} autoComplete="email" />
         </div>
         <div>
-          <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-300">Password</label>
+          <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-600">Password</label>
           <input
             id="password" required type="password" minLength={8}
             value={form.password} onChange={set('password')} className={inputClass}
@@ -97,7 +97,7 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p>
+          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
         )}
 
         <button
@@ -109,12 +109,12 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-400">
+      <p className="mt-6 text-center text-sm text-slate-500">
         {mode === 'signin' ? "New to LoL3D?" : 'Already have an account?'}{' '}
         <button
           type="button"
           onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setError(null); }}
-          className="font-semibold text-brand-400 hover:text-brand-500"
+          className="font-semibold text-brand-600 hover:text-brand-700"
         >
           {mode === 'signin' ? 'Create an account' : 'Sign in'}
         </button>
