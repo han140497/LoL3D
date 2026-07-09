@@ -96,19 +96,18 @@ export default function ProductPage() {
             </div>
           </dl>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8">
             <Link
               to={`/quote?print=${product.slug}&material=${selected.type}`}
               onClick={trackQuote}
-              className="rounded-full bg-brand-500 px-8 py-3 font-semibold text-white transition-colors hover:bg-brand-600"
+              className="inline-block rounded-full bg-brand-500 px-8 py-3 font-semibold text-white transition-colors hover:bg-brand-600"
             >
               Order / Get a Quote
             </Link>
-            <InstagramButton location="product_page" label="DM us on Instagram" variant="ghost" />
           </div>
-          <p className="mt-4 text-sm text-slate-500">
-            Every piece is printed to order — mention <span className="text-slate-300">{product.name}</span> when
-            you DM {INSTAGRAM.handle}.
+          <p className="mt-4 flex items-center gap-1 text-sm text-slate-500">
+            Every piece is printed to order. Questions first?
+            <InstagramButton location="product_page" label={`DM ${INSTAGRAM.handle}`} variant="ghost" className="!px-1 !py-0" />
           </p>
         </div>
       </div>

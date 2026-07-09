@@ -15,6 +15,33 @@ function getSessionId() {
   return id;
 }
 
+// ---------------------------------------------------------------------------
+// UTM capture — Instagram's in-app browser often strips the referrer, so the
+// bio link should carry ?utm_source=instagram. We remember the UTM params for
+// the whole visit and attach them to every event.
+// ---------------------------------------------------------------------------
+const UTM_KEY = 'lol3d_utm';
+
+export function captureUtm() {
+  const params = new URLSearchParams(window.location.search);
+  const utm = {};
+  for (const key of ['utm_source', 'utm_medium', 'utm_campaign']) {
+    const value = params.get(key);
+    if (value) utm[key] = value;
+  }
+  if (Object.keys(utm).length > 0) {
+    sessionStorage.setItem(UTM_KEY, JSON.stringify(utm));
+  }
+}
+
+function getUtm() {
+  try {
+    return JSON.parse(sessionStorage.getItem(UTM_KEY) ?? '{}');
+  } catch {
+    return {};
+  }
+}
+
 function getDeviceType() {
   const w = window.innerWidth;
   if (w < 640) return 'mobile';
@@ -39,7 +66,7 @@ export function logEvent(eventType, { targetId, targetName, category, metadata }
     session_id: getSessionId(),
     device_type: getDeviceType(),
     referrer: document.referrer || null,
-    metadata: metadata ?? {},
+    metadata: { ...getUtm(), ...(metadata ?? {}) },
   };
 
   if (!isSupabaseConfigured) {

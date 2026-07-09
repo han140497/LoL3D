@@ -46,11 +46,14 @@ export default function QuotePage() {
         <div className="text-5xl">🎉</div>
         <h1 className="mt-4 text-3xl font-bold text-white">Request received!</h1>
         <p className="mt-3 text-slate-300">
-          Thanks, {form.name.split(' ')[0] || 'friend'} — we'll get back to you within a day. For the
-          fastest reply, DM us on Instagram too.
+          Thanks, {form.name.split(' ')[0] || 'friend'} — we'll get back to you within a day with a
+          price and timeline.
         </p>
-        <div className="mt-6 flex justify-center">
-          <InstagramButton location="quote_confirmation" label={`DM ${INSTAGRAM.handle}`} />
+        <p className="mt-6 text-sm text-slate-500">
+          While you wait, see what's coming off the printers:
+        </p>
+        <div className="mt-3 flex justify-center">
+          <InstagramButton location="quote_confirmation" label={`Follow ${INSTAGRAM.handle}`} variant="ghost" />
         </div>
       </main>
     );

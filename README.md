@@ -28,6 +28,12 @@ src/components/shared/    InstagramButton, TrackedLink — self-tracking wrapper
 
 Every product click, Instagram link, category link, and "Get a Quote" button must log an event. Don't attach raw `onClick` logging by hand — use the shared `InstagramButton` / `TrackedLink` components, or call `logEvent(EVENT_TYPES.X, {...})` from `src/lib/analytics.js`. Events are insert-only for the public anon key (enforced by Supabase RLS), so analytics data can't be read or modified from the browser.
 
+## Deploying
+
+The repo is Vercel-ready (`vercel.json` handles SPA routing, so deep links like `/product/flexi-dragon` work when shared on Instagram). Import the GitHub repo at [vercel.com/new](https://vercel.com/new) — every push to `main` auto-deploys. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the Vercel project settings to enable live data.
+
+Point the Instagram bio link at the deployed site with `?utm_source=instagram&utm_medium=bio` — UTM params are captured per visit and attached to every analytics event, so quote requests can be attributed to IG.
+
 ## Categories
 
 `functional` (Functional Prints) · `cosplay` (Cosplay & Props) · `decor` (Home Decor) · `minis` (Miniature Gaming)
