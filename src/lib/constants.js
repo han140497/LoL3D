@@ -5,8 +5,8 @@ export const BRAND = {
 };
 
 export const INSTAGRAM = {
-  handle: '@lol3d.prints', // TODO: replace with the real handle
-  url: 'https://instagram.com/lol3d.prints',
+  handle: '@LoL___3D',
+  url: 'https://instagram.com/LoL___3D',
 };
 
 export const CATEGORIES = [
