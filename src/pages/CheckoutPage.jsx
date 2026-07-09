@@ -46,21 +46,34 @@ export default function CheckoutPage() {
     setError(null);
 
     try {
-      let payment = { method: 'payment_link_requested', ref: null, paid: false };
       if (isPaymentConfigured) {
+        // Paid path: the Edge Function computes the real amount from DB
+        // prices, verifies the payment, and saves the order server-side.
         const result = await payWithRazorpay({
-          amount: total,
-          customer: { name: form.name, phone: form.phone, email: form.email, pincode: form.pincode },
+          items,
+          customer: {
+            name: form.name, phone: form.phone, email: form.email,
+            line1: form.line1, line2: form.line2, city: form.city,
+            state: form.state, pincode: form.pincode,
+          },
         });
         if (!result.paid) {
           setPlacing(false);
           return; // checkout dismissed — keep the cart intact
         }
-        payment = { method: 'razorpay', ref: result.paymentId, paid: true };
+        logEvent(EVENT_TYPES.PURCHASE, {
+          targetId: result.paymentId,
+          targetName: 'Order paid',
+          metadata: { total: result.total, item_count: items.length, paid: true },
+        });
+        clearCart();
+        setDone({ total: result.total, paid: true });
+        return;
       }
 
+      // Pay-later fallback: record the order, collect via UPI link manually.
       const saved = await insertOrder({
-        status: payment.paid ? 'paid' : 'placed',
+        status: 'placed',
         items,
         subtotal,
         shipping_cost: shipping.cost,
@@ -73,20 +86,20 @@ export default function CheckoutPage() {
         city: form.city,
         state: form.state,
         pincode: form.pincode,
-        payment_method: payment.method,
-        payment_ref: payment.ref,
+        payment_method: 'payment_link_requested',
+        payment_ref: null,
         session_id: sessionStorage.getItem('lol3d_session'),
         user_id: user?.id ?? null,
       });
       if (!saved.ok) throw new Error('Could not save your order. Please try again.');
 
       logEvent(EVENT_TYPES.PURCHASE, {
-        targetId: payment.ref ?? 'order',
+        targetId: 'order',
         targetName: 'Order placed',
-        metadata: { total, shipping: shipping.cost, item_count: items.length, paid: payment.paid },
+        metadata: { total, shipping: shipping.cost, item_count: items.length, paid: false },
       });
       clearCart();
-      setDone({ total, paid: payment.paid });
+      setDone({ total, paid: false });
     } catch (err) {
       setError(err.message);
     } finally {

@@ -1,16 +1,21 @@
 import { BRAND } from './constants.js';
+import { supabase, isSupabaseConfigured } from './supabaseClient.js';
 
 // Razorpay checkout — one integration covers UPI, cards, netbanking, and
-// wallets for domestic (India) payments. Needs VITE_RAZORPAY_KEY_ID from
-// dashboard.razorpay.com (test keys work with fake payments end-to-end).
+// wallets for domestic (India) payments.
 //
-// TODO before going live: create the Razorpay order server-side (Supabase
-// Edge Function) and verify the payment signature there. Client-side-only
-// checkout is fine for testing but amounts must be verified on a server
-// you trust before treating an order as paid.
+// The money-critical steps run in the `razorpay` Supabase Edge Function:
+// it recomputes the amount from DATABASE prices (client totals are never
+// trusted), creates the Razorpay order, verifies the payment signature,
+// and inserts the order row as 'paid'. This file only opens the checkout
+// window and relays results.
+//
+// Setup: deploy supabase/functions/razorpay/index.ts, set the
+// RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET secrets, and put the public
+// key id in .env.local as VITE_RAZORPAY_KEY_ID.
 const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
-export const isPaymentConfigured = Boolean(RAZORPAY_KEY);
+export const isPaymentConfigured = Boolean(RAZORPAY_KEY) && isSupabaseConfigured;
 
 let scriptPromise;
 function loadRazorpayScript() {
@@ -26,16 +31,42 @@ function loadRazorpayScript() {
   return scriptPromise;
 }
 
+async function invokeRazorpayFn(payload) {
+  const { data, error } = await supabase.functions.invoke('razorpay', { body: payload });
+  if (error) {
+    // FunctionsHttpError carries the response; surface the server's message.
+    let message = 'Payment service unavailable — try again or choose pay-later.';
+    try {
+      const details = await error.context?.json();
+      if (details?.error) message = details.error;
+    } catch { /* keep generic message */ }
+    throw new Error(message);
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
 /**
- * Opens Razorpay checkout for `amount` rupees. Resolves with
- * { paid: true, paymentId } on success, { paid: false } if dismissed.
+ * Full payment flow. `items` are cart lines ({slug, material, qty} is all
+ * that's sent — prices come from the database). Resolves with
+ * { paid: true, paymentId, total } after server-side verification,
+ * or { paid: false } if the customer closes the checkout window.
  */
-export async function payWithRazorpay({ amount, customer }) {
+export async function payWithRazorpay({ items, customer }) {
   await loadRazorpayScript();
+
+  const cartItems = items.map((l) => ({ slug: l.slug, material: l.material, qty: l.qty }));
+  const order = await invokeRazorpayFn({
+    action: 'create_order',
+    items: cartItems,
+    pincode: customer.pincode,
+  });
+
   return new Promise((resolve, reject) => {
     const rzp = new window.Razorpay({
-      key: RAZORPAY_KEY,
-      amount: Math.round(amount * 100), // paise
+      key: order.key_id,
+      order_id: order.order_id,
+      amount: order.amount,
       currency: 'INR',
       name: BRAND.name,
       description: `${BRAND.fullName} order`,
@@ -44,9 +75,23 @@ export async function payWithRazorpay({ amount, customer }) {
         email: customer.email || undefined,
         contact: customer.phone,
       },
-      notes: { pincode: customer.pincode },
       theme: { color: '#f97316' },
-      handler: (response) => resolve({ paid: true, paymentId: response.razorpay_payment_id }),
+      handler: async (response) => {
+        try {
+          const placed = await invokeRazorpayFn({
+            action: 'verify_and_place',
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            customer,
+            items: cartItems,
+            session_id: sessionStorage.getItem('lol3d_session'),
+          });
+          resolve({ paid: true, paymentId: response.razorpay_payment_id, total: placed.total });
+        } catch (err) {
+          reject(err);
+        }
+      },
       modal: { ondismiss: () => resolve({ paid: false }) },
     });
     rzp.on('payment.failed', (response) =>

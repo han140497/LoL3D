@@ -28,7 +28,7 @@ src/components/shared/    InstagramButton, TrackedLink — self-tracking wrapper
 
 Prices are INR; shipping is **domestic (India) only**, tiered by PIN code distance from `SHIPPING.ORIGIN_PINCODE` in `src/lib/constants.js` (set this to the PIN you ship from), with free shipping above the configured subtotal. Cart state lives in localStorage (`src/context/CartContext.jsx`). Orders are inserted into the Supabase `orders` table (insert-only for the anon key).
 
-Payments use Razorpay (UPI / cards / netbanking / wallets): set `VITE_RAZORPAY_KEY_ID` in `.env.local`. Without it, orders are recorded as "payment link requested" and you follow up manually. Before going live with real payments, add server-side order creation + signature verification (Supabase Edge Function) — see the note in `src/lib/payments.js`.
+Payments use Razorpay (UPI / cards / netbanking / wallets) with server-side verification. Setup: (1) deploy `supabase/functions/razorpay/index.ts` as an Edge Function named `razorpay` (Dashboard → Edge Functions), (2) set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` as Edge Function secrets, (3) put the public key id in `.env.local` as `VITE_RAZORPAY_KEY_ID` and rebuild. The function recomputes amounts from database prices (client totals are never trusted), verifies the payment signature, and inserts the order as `paid` — keep its shipping constants in sync with `src/lib/constants.js`. Without a key configured, orders fall back to "payment link requested" for manual UPI collection.
 
 Custom work goes through `/quote`, which accepts an optional STL/OBJ/3MF/STEP upload into the `quote-uploads` storage bucket and records the request in `quote_requests`.
 
