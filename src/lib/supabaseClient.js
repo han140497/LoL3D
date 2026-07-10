@@ -1,7 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Guard against the most common misconfiguration: pasting the dashboard
+// page link (supabase.com/dashboard/project/<ref>/…) instead of the API
+// URL (https://<ref>.supabase.co). We extract the project ref and fix it.
+function normalizeSupabaseUrl(raw) {
+  if (!raw) return raw;
+  const trimmed = raw.trim().replace(/\/+$/, '');
+  const dashboard = trimmed.match(/supabase\.com\/dashboard\/project\/([a-z0-9]+)/);
+  if (dashboard) {
+    console.warn(
+      `[LoL3D] VITE_SUPABASE_URL is a dashboard link — using https://${dashboard[1]}.supabase.co instead. Fix the env var.`,
+    );
+    return `https://${dashboard[1]}.supabase.co`;
+  }
+  return trimmed;
+}
+
+const url = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL);
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 
 // Without credentials the app runs in offline mode: the catalog falls back
 // to the local seed data and analytics events log to the console instead.
