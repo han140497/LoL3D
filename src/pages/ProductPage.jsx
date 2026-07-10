@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { CATEGORIES, INSTAGRAM, formatINR } from '../lib/constants.js';
+import { INSTAGRAM, formatINR } from '../lib/constants.js';
 import { useCatalog } from '../context/CatalogContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import ProductImage from '../components/shared/ProductImage.jsx';
@@ -8,7 +8,7 @@ import InstagramButton from '../components/shared/InstagramButton.jsx';
 
 export default function ProductPage() {
   const { slug } = useParams();
-  const { products, loading } = useCatalog();
+  const { products, categories, loading } = useCatalog();
   const { addItem } = useCart();
   const product = products.find((p) => p.slug === slug);
   const [material, setMaterial] = useState(null);
@@ -39,7 +39,7 @@ export default function ProductPage() {
     );
   }
 
-  const categoryName = CATEGORIES.find((c) => c.id === product.category)?.name;
+  const categoryName = categories.find((c) => c.id === product.category)?.name;
   const selected = material ?? product.materials[0];
   const price = Number(product.price_base) + Number(selected.surcharge ?? 0);
 

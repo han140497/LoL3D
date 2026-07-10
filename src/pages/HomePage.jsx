@@ -3,7 +3,7 @@ import Hero from '../components/home/Hero.jsx';
 import InstaFeedSection from '../components/home/InstaFeedSection.jsx';
 import QuoteCTA from '../components/home/QuoteCTA.jsx';
 import ProductGrid from '../components/catalog/ProductGrid.jsx';
-import { CATEGORIES, EVENT_TYPES, SCULPTURE_STYLES, formatINR } from '../lib/constants.js';
+import { EVENT_TYPES, SCULPTURE_STYLES, formatINR } from '../lib/constants.js';
 import { logEvent } from '../lib/analytics.js';
 import { useCatalog } from '../context/CatalogContext.jsx';
 
@@ -85,12 +85,12 @@ function SculptureCTA() {
 }
 
 export default function HomePage() {
-  const { products, loading } = useCatalog();
+  const { products, categories, loading } = useCatalog();
 
   return (
     <main>
       <Hero />
-      {CATEGORIES.map((cat, i) => (
+      {categories.map((cat, i) => (
         <div key={cat.id}>
           <CategorySection category={cat} products={products} loading={loading} />
           {/* Break up the scroll: sculpture CTA after the first section, Insta feed after the second */}

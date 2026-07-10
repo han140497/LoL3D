@@ -34,7 +34,9 @@ Custom work goes through `/quote`, which accepts an optional STL/OBJ/3MF/STEP up
 
 Custom sculptures go through `/sculptures`: the customer uploads a photo (→ `sculpture-photos` bucket), picks a style (chibi, cartoon miniature, realistic bust, full-body, pet), and gets a confirmation; requests land in `sculpture_requests` and are worked from the admin Requests tab (statuses: new → modeling → preview_sent → confirmed → printed). No payment up front — price is confirmed with the 3D preview.
 
-The admin console (`/admin`) has three tabs: **Overview** (analytics), **Products** (add listings, toggle featured/live), and **Requests** (sculptures + quotes, with signed-URL file access). Existing databases need `supabase/migrations/002_sculptures_and_product_admin.sql` run once.
+The admin console (`/admin`) has five tabs: **Overview** (analytics), **Orders** (ongoing orders with a status pipeline — changing status emails the customer), **Products** (add/edit listings, toggle featured/live), **Categories** (add/hide categories; nav, homepage, and filters follow the table), and **Requests** (sculptures + quotes, with signed-URL file access). Existing databases need migrations 002–004 run once each.
+
+**Order emails** go through the `order-notify` Edge Function (deploy it like the razorpay one) using [Resend](https://resend.com): set the `RESEND_API_KEY` secret, and `EMAIL_FROM` (e.g. `LoL3D <orders@lol3d.in>`) once the domain is verified in Resend. Customers get a confirmation when an order is placed (both paid and pay-later paths) and an update email whenever an admin changes the order status. Checkout requires an email address. Without `RESEND_API_KEY`, everything still works — the admin UI just notes that the email wasn't sent.
 
 ## Accounts & admin
 

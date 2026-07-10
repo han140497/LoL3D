@@ -87,7 +87,7 @@ export async function payWithRazorpay({ items, customer }) {
             items: cartItems,
             session_id: sessionStorage.getItem('lol3d_session'),
           });
-          resolve({ paid: true, paymentId: response.razorpay_payment_id, total: placed.total });
+          resolve({ paid: true, paymentId: response.razorpay_payment_id, total: placed.total, orderId: placed.order_id });
         } catch (err) {
           reject(err);
         }

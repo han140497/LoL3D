@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import { CATEGORIES, EVENT_TYPES } from '../../lib/constants.js';
+import { EVENT_TYPES } from '../../lib/constants.js';
+import { useCatalog } from '../../context/CatalogContext.jsx';
 import { logEvent } from '../../lib/analytics.js';
 
 const pillClass = (isActive) =>
@@ -10,12 +11,13 @@ const pillClass = (isActive) =>
   }`;
 
 export default function CategoryFilter() {
+  const { categories } = useCatalog();
   return (
     <div className="flex flex-wrap gap-2">
       <NavLink to="/catalog" end className={({ isActive }) => pillClass(isActive)}>
         All Prints
       </NavLink>
-      {CATEGORIES.map((cat) => (
+      {categories.map((cat) => (
         <NavLink
           key={cat.id}
           to={`/catalog/${cat.id}`}

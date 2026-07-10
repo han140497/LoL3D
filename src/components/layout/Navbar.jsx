@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { BRAND, CATEGORIES, EVENT_TYPES } from '../../lib/constants.js';
+import { BRAND, EVENT_TYPES } from '../../lib/constants.js';
 import { logEvent } from '../../lib/analytics.js';
 import InstagramButton from '../shared/InstagramButton.jsx';
 import { useCart } from '../../context/CartContext.jsx';
+import { useCatalog } from '../../context/CatalogContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 function AccountButton() {
@@ -91,6 +92,7 @@ function SearchForm({ className = '', onSubmitted }) {
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { categories } = useCatalog();
 
   const trackCategory = (cat, location) =>
     logEvent(EVENT_TYPES.CATEGORY_CLICK, {
@@ -162,7 +164,7 @@ export default function Navbar() {
           >
             All Prints
           </NavLink>
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <NavLink
               key={cat.id}
               to={`/catalog/${cat.id}`}
@@ -199,7 +201,7 @@ export default function Navbar() {
             >
               All Prints
             </NavLink>
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <NavLink
                 key={cat.id}
                 to={`/catalog/${cat.id}`}

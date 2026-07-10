@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
-import { CATEGORIES, formatINR } from '../../lib/constants.js';
+import { formatINR } from '../../lib/constants.js';
+import { useCatalog } from '../../context/CatalogContext.jsx';
 
 const inputClass =
   'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-brand-500';
@@ -15,6 +16,7 @@ const EMPTY = {
 
 // One form for both adding and editing. `product` = null → add mode.
 function ProductForm({ product, onSaved, onCancel }) {
+  const { categories } = useCatalog();
   const [form, setForm] = useState(() => {
     if (!product) return EMPTY;
     const petg = (product.materials ?? []).find((m) => m.type === 'PETG');
@@ -88,7 +90,7 @@ function ProductForm({ product, onSaved, onCancel }) {
         <div>
           <label htmlFor="p-category" className="mb-1 block text-xs font-medium text-slate-500">Category</label>
           <select id="p-category" value={form.category} onChange={set('category')} className={inputClass}>
-            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
         <div>
@@ -127,6 +129,7 @@ function ProductForm({ product, onSaved, onCancel }) {
 }
 
 export default function ProductsAdmin() {
+  const { categories } = useCatalog();
   const [products, setProducts] = useState(null);
   const [editing, setEditing] = useState(null); // product being edited, or null
   const [error, setError] = useState(null);
@@ -183,7 +186,7 @@ export default function ProductsAdmin() {
             {products.map((p) => (
               <tr key={p.id} className={p.active ? '' : 'opacity-50'}>
                 <td className="py-2.5 pr-4 text-slate-900">{p.name}</td>
-                <td className="py-2.5 pr-4 text-slate-500">{CATEGORIES.find((c) => c.id === p.category)?.name ?? p.category}</td>
+                <td className="py-2.5 pr-4 text-slate-500">{categories.find((c) => c.id === p.category)?.name ?? p.category}</td>
                 <td className="py-2.5 pr-4 text-slate-600">{formatINR(p.price_base)}</td>
                 <td className="py-2.5 pr-4">
                   <button type="button" onClick={() => toggle(p, 'featured')} className={`rounded-full px-3 py-1 text-xs font-semibold ${p.featured ? 'bg-brand-100 text-brand-600' : 'bg-slate-100 text-slate-500 hover:text-slate-600'}`}>

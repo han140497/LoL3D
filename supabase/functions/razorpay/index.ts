@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
       }
 
       const totals = await computeTotals(admin, items, customer.pincode);
-      const { error } = await admin.from('orders').insert({
+      const { data: inserted, error } = await admin.from('orders').insert({
         status: 'paid',
         items: totals.lines,
         subtotal: totals.subtotal,
@@ -142,9 +142,9 @@ Deno.serve(async (req) => {
         session_id: session_id ?? null,
         user_id: userId,
         metadata: { razorpay_order_id },
-      });
+      }).select('id').single();
       if (error) return json({ error: `Payment received but order save failed: ${error.message}` }, 500);
-      return json({ ok: true, total: totals.total });
+      return json({ ok: true, total: totals.total, order_id: inserted.id });
     }
 
     return json({ error: 'Unknown action' }, 400);

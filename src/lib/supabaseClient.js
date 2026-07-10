@@ -85,6 +85,33 @@ export async function insertSculptureRequest(request) {
   return { ok: true };
 }
 
+// Fire-and-forget-able order email trigger (order-notify Edge Function).
+export async function notifyOrder(orderId, kind) {
+  if (!isSupabaseConfigured) {
+    console.info('[LoL3D notify · offline]', kind, orderId);
+    return { ok: true, offline: true };
+  }
+  const { data, error } = await supabase.functions.invoke('order-notify', {
+    body: { order_id: orderId, kind },
+  });
+  if (error) return { ok: false, emailed: false, reason: 'notify_unreachable' };
+  return { ok: true, ...data };
+}
+
+// Categories are admin-managed data; the constants list is the fallback
+// for offline mode or a database that predates migration 004.
+export async function fetchCategories() {
+  const { CATEGORIES } = await import('./constants.js');
+  if (!isSupabaseConfigured) return CATEGORIES;
+  const { data, error } = await supabase
+    .from('categories')
+    .select('id, name, blurb')
+    .eq('active', true)
+    .order('sort');
+  if (error || !data || data.length === 0) return CATEGORIES;
+  return data;
+}
+
 export async function fetchProducts() {
   if (!isSupabaseConfigured) {
     const { PRODUCTS } = await import('../data/products.js');

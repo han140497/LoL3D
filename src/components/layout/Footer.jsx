@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
-import { BRAND, CATEGORIES, INSTAGRAM, EVENT_TYPES } from '../../lib/constants.js';
+import { BRAND, INSTAGRAM, EVENT_TYPES } from '../../lib/constants.js';
+import { useCatalog } from '../../context/CatalogContext.jsx';
 import { logEvent } from '../../lib/analytics.js';
 import InstagramButton from '../shared/InstagramButton.jsx';
 
 export default function Footer() {
+  const { categories } = useCatalog();
   return (
     <footer className="border-t border-slate-200 bg-slate-50">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -20,7 +22,7 @@ export default function Footer() {
           <div>
             <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">Catalog</p>
             <ul className="mt-3 space-y-2">
-              {CATEGORIES.map((cat) => (
+              {categories.map((cat) => (
                 <li key={cat.id}>
                   <Link
                     to={`/catalog/${cat.id}`}

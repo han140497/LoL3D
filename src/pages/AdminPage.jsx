@@ -5,6 +5,8 @@ import { fetchDashboardData } from '../lib/adminData.js';
 import { formatINR } from '../lib/constants.js';
 import ProductsAdmin from '../components/admin/ProductsAdmin.jsx';
 import RequestsAdmin from '../components/admin/RequestsAdmin.jsx';
+import OrdersAdmin from '../components/admin/OrdersAdmin.jsx';
+import CategoriesAdmin from '../components/admin/CategoriesAdmin.jsx';
 
 const BAR = '#ea580c'; // single sequential hue (≥3:1 on white) — one series per chart, direct-labeled
 
@@ -124,7 +126,9 @@ export default function AdminPage() {
 
   const TABS = [
     { id: 'overview', label: 'Overview' },
+    { id: 'orders', label: 'Orders' },
     { id: 'products', label: 'Products' },
+    { id: 'categories', label: 'Categories' },
     { id: 'requests', label: 'Requests' },
   ];
 
@@ -159,9 +163,19 @@ export default function AdminPage() {
         ))}
       </div>
 
+      {tab === 'orders' && (
+        <div className="mt-6">
+          {configured ? <OrdersAdmin /> : <p className="text-slate-500">Connect Supabase to manage orders.</p>}
+        </div>
+      )}
       {tab === 'products' && (
         <div className="mt-6">
           {configured ? <ProductsAdmin /> : <p className="text-slate-500">Connect Supabase to manage products.</p>}
+        </div>
+      )}
+      {tab === 'categories' && (
+        <div className="mt-6">
+          {configured ? <CategoriesAdmin /> : <p className="text-slate-500">Connect Supabase to manage categories.</p>}
         </div>
       )}
       {tab === 'requests' && (

@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
-import { EVENT_TYPES, CATEGORIES, formatINR } from '../../lib/constants.js';
+import { EVENT_TYPES, formatINR } from '../../lib/constants.js';
+import { useCatalog } from '../../context/CatalogContext.jsx';
 import { logEvent } from '../../lib/analytics.js';
 import ProductImage from '../shared/ProductImage.jsx';
 
 export default function ProductCard({ product }) {
-  const categoryName = CATEGORIES.find((c) => c.id === product.category)?.name;
+  const { categories } = useCatalog();
+  const categoryName = categories.find((c) => c.id === product.category)?.name;
 
   const handleClick = () =>
     logEvent(EVENT_TYPES.PRODUCT_CLICK, {

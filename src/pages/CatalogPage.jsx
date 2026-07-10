@@ -1,5 +1,4 @@
 import { useParams, useSearchParams } from 'react-router-dom';
-import { CATEGORIES } from '../lib/constants.js';
 import { useCatalog } from '../context/CatalogContext.jsx';
 import CategoryFilter from '../components/catalog/CategoryFilter.jsx';
 import ProductGrid from '../components/catalog/ProductGrid.jsx';
@@ -7,10 +6,10 @@ import ProductGrid from '../components/catalog/ProductGrid.jsx';
 export default function CatalogPage() {
   const { category } = useParams();
   const [params] = useSearchParams();
-  const { products, loading } = useCatalog();
+  const { products, categories, loading } = useCatalog();
 
   const query = (params.get('q') ?? '').trim().toLowerCase();
-  const activeCategory = CATEGORIES.find((c) => c.id === category);
+  const activeCategory = categories.find((c) => c.id === category);
 
   let visible = activeCategory
     ? products.filter((p) => p.category === activeCategory.id)

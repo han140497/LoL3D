@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { formatINR, INDIAN_STATES, EVENT_TYPES } from '../lib/constants.js';
 import { computeShipping, isValidPincode } from '../lib/shipping.js';
 import { logEvent } from '../lib/analytics.js';
-import { insertOrder } from '../lib/supabaseClient.js';
+import { insertOrder, notifyOrder } from '../lib/supabaseClient.js';
 import { isPaymentConfigured, payWithRazorpay } from '../lib/payments.js';
 import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -66,13 +66,18 @@ export default function CheckoutPage() {
           targetName: 'Order paid',
           metadata: { total: result.total, item_count: items.length, paid: true },
         });
+        if (result.orderId) notifyOrder(result.orderId, 'confirmation').catch(() => {});
         clearCart();
         setDone({ total: result.total, paid: true });
         return;
       }
 
       // Pay-later fallback: record the order, collect via UPI link manually.
+      // The id is generated here so the confirmation email can reference it
+      // (the anon role can insert orders but never read them back).
+      const orderId = crypto.randomUUID();
       const saved = await insertOrder({
+        id: orderId,
         status: 'placed',
         items,
         subtotal,
@@ -92,6 +97,7 @@ export default function CheckoutPage() {
         user_id: user?.id ?? null,
       });
       if (!saved.ok) throw new Error('Could not save your order. Please try again.');
+      notifyOrder(orderId, 'confirmation').catch(() => {});
 
       logEvent(EVENT_TYPES.PURCHASE, {
         targetId: 'order',
@@ -159,8 +165,8 @@ export default function CheckoutPage() {
             </div>
           </div>
           <div>
-            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-600">Email (optional)</label>
-            <input id="email" type="email" value={form.email} onChange={set('email')} className={inputClass} autoComplete="email" />
+            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-600">Email (for order confirmation & tracking updates)</label>
+            <input id="email" required type="email" value={form.email} onChange={set('email')} className={inputClass} autoComplete="email" />
           </div>
           <div>
             <label htmlFor="line1" className="mb-1.5 block text-sm font-medium text-slate-600">Address line 1</label>
