@@ -50,7 +50,7 @@ Every product click, Instagram link, category link, and "Get a Quote" button mus
 
 ## Deploying
 
-**Current hosting: GitHub Pages** at https://han140497.github.io/LoL3D/ — run `npm run deploy` (needs `.env.local` present, since env values are baked in at build time). Production builds use the `/LoL3D/` base path; `404.html` provides the SPA fallback for deep links.
+**Current hosting: GitHub Pages** at **https://lol3d.in** (custom domain; the github.io URL redirects). Run `npm run deploy` (needs `.env.local` present, since env values are baked in at build time). `public/CNAME` pins the domain — don't delete it. `404.html` provides the SPA fallback for deep links. DNS: apex A records → GitHub Pages IPs, `www` CNAME → `han140497.github.io`.
 
 Alternatively the repo is Vercel-ready (`vercel.json` handles SPA routing): import it at [vercel.com/new](https://vercel.com/new), set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in project settings, and every push to `main` auto-deploys. If you switch to Vercel, change `base` in `vite.config.js` back to `/`.
 
