@@ -50,9 +50,15 @@ Every product click, Instagram link, category link, and "Get a Quote" button mus
 
 ## Deploying
 
-**Current hosting: GitHub Pages** at **https://lol3d.in** (custom domain; the github.io URL redirects). Run `npm run deploy` (needs `.env.local` present, since env values are baked in at build time). `public/CNAME` pins the domain — don't delete it. `404.html` provides the SPA fallback for deep links. DNS: apex A records → GitHub Pages IPs, `www` CNAME → `han140497.github.io`.
+**Hosting: Cloudflare Pages** at **https://lol3d.in**. Build settings: build command `npm run build`, output directory `dist`. Environment variables (Pages project → Settings → Environment variables — set for Production, then redeploy):
 
-Alternatively the repo is Vercel-ready (`vercel.json` handles SPA routing): import it at [vercel.com/new](https://vercel.com/new), set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in project settings, and every push to `main` auto-deploys. If you switch to Vercel, change `base` in `vite.config.js` back to `/`.
+```
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co   ← the API URL, NOT the dashboard link
+VITE_SUPABASE_ANON_KEY=<anon public key>
+VITE_RAZORPAY_KEY_ID=<rzp key id, when payments go live>
+```
+
+`public/_redirects` provides the SPA fallback so deep links like `/product/flexi-dragon` load the app (the `404.html` copy in the build output is a belt-and-braces fallback for other static hosts). If the Pages project is connected to this GitHub repo, every push to `main` deploys automatically.
 
 Point the Instagram bio link at the deployed site with `?utm_source=instagram&utm_medium=bio` — UTM params are captured per visit and attached to every analytics event, so quote requests can be attributed to IG.
 

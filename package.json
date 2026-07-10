@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp dist/index.html dist/404.html && touch dist/.nojekyll",
-    "deploy": "npm run build && cd dist && rm -rf .git && git init -q -b gh-pages && git add -A && git commit -q -m 'Deploy to GitHub Pages' && git push -f https://github.com/han140497/LoL3D.git gh-pages && rm -rf .git",
+    "build": "vite build && cp dist/index.html dist/404.html",
     "preview": "vite preview"
   },
   "dependencies": {
