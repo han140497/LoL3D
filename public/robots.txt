@@ -1,4 +1,13 @@
 User-agent: *
+# Prevent crawling of non-public, sensitive, or high-interaction pages
+Disallow: /admin
+Disallow: /checkout
+Disallow: /cart
+Disallow: /account
+Disallow: /login
+
+# Allow everything else
 Allow: /
 
+# Reference your sitemap
 Sitemap: https://lol3d.in/sitemap.xml
