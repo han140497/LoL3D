@@ -7,3 +7,7 @@ dist
 *.log
 
 .claude/settings.local.json
+
+# AI content pipeline: raw 4K renders, source photos, and its venv —
+# not part of the deployed site (web-ready assets live in public/products/)
+LoL3D-Content/

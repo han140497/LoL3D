@@ -21,6 +21,11 @@ export const CATEGORIES = [
     blurb: 'Wearable armor, helmets, and screen-accurate props ready to finish.',
   },
   {
+    id: 'figurines',
+    name: 'Figurines & Collectibles',
+    blurb: 'Fan-art busts and full figures, printed and finished for display.',
+  },
+  {
     id: 'decor',
     name: 'Home Decor',
     blurb: 'Planters, lamps, and sculptural pieces for modern spaces.',
