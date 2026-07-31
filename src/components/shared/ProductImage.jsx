@@ -1,5 +1,10 @@
-// Category-tinted placeholder art shown until real product photos are added
-// (set image_url on the product to replace it).
+// Category-tinted placeholder art shown only when no image is available.
+// Priority order:
+//   1. product.image_url  (remote URL stored in Supabase)
+//   2. /products/<slug>/hero.webp  (local static file in public/)
+//   3. Category-tinted placeholder SVG  (fallback when both above fail)
+import { useState } from 'react';
+
 const CATEGORY_ART = {
   functional: {
     from: '#f97316',
@@ -24,17 +29,23 @@ const CATEGORY_ART = {
 };
 
 export default function ProductImage({ product, className = '' }) {
-  if (product.image_url) {
+  // Prefer the DB-stored URL, then fall back to the local static asset.
+  const initialSrc = product.image_url || (product.slug ? `/products/${product.slug}/hero.webp` : null);
+  const [errored, setErrored] = useState(false);
+
+  if (initialSrc && !errored) {
     return (
       <img
-        src={product.image_url}
+        src={initialSrc}
         alt={product.name}
         loading="lazy"
         className={`h-full w-full object-cover ${className}`}
+        onError={() => setErrored(true)}
       />
     );
   }
 
+  // Placeholder: category-tinted gradient with an icon.
   const art = CATEGORY_ART[product.category] ?? CATEGORY_ART.functional;
   return (
     <div
