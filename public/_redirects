@@ -1,1 +1,3 @@
+# Serve real static files as-is (images, assets, etc.)
+# SPA fallback — must be last
 /*  /index.html  200
