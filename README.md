@@ -66,4 +66,4 @@ Point the Instagram bio link at the deployed site with `?utm_source=instagram&ut
 
 ## Categories
 
-`functional` (Functional Prints) · `cosplay` (Cosplay & Props) · `decor` (Home Decor) · `minis` (Miniature Gaming)
+`functional` (Functional Prints) · `cosplay` (Cosplay & Props) · `decor` (Home Decor) · `minis` (Miniature Gaming) .
