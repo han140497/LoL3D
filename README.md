@@ -60,7 +60,16 @@ VITE_SUPABASE_ANON_KEY=<anon public key>
 VITE_RAZORPAY_KEY_ID=<rzp key id, when payments go live>
 ```
 
-`public/_redirects` provides the SPA fallback so deep links like `/product/flexi-dragon` load the app (the `404.html` copy in the build output is a belt-and-braces fallback for other static hosts). If the Pages project is connected to this GitHub repo, every push to `main` deploys automatically.
+`public/_redirects` provides the SPA fallback so deep links like `/product/flexi-dragon` load the app (the `404.html` copy in the build output is a belt-and-braces fallback for other static hosts).
+
+**Deploys are manual, not git-triggered.** The `lol3d` Pages project has no Git provider connected (`wrangler pages project list` shows `Git Provider: No`) — pushing to `main` does not deploy the site. To publish a change:
+
+```
+npm run build
+npx wrangler pages deploy dist --project-name=lol3d --branch=main
+```
+
+`--branch=main` is required to land on the production environment (and the `lol3d.in` custom domain); anything else creates a preview-only deployment. After deploying, the custom domain can take a minute or two to pick up the new build even though the `*.pages.dev` deployment URL updates immediately — that's propagation lag, not a failed deploy.
 
 Point the Instagram bio link at the deployed site with `?utm_source=instagram&utm_medium=bio` — UTM params are captured per visit and attached to every analytics event, so quote requests can be attributed to IG.
 
