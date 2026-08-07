@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
-import { formatINR } from '../../lib/constants.js';
+import { formatINR, PRICING } from '../../lib/constants.js';
+import { calculateProductPrice } from '../../lib/pricing.js';
 import { useCatalog } from '../../context/CatalogContext.jsx';
 
 const inputClass =
@@ -10,7 +11,9 @@ const slugify = (name) =>
   name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
 const EMPTY = {
-  name: '', category: 'functional', price_base: '', petg_surcharge: '',
+  name: '', category: 'functional', petg_surcharge: '',
+  filament_weight_g: '', print_time_hours: '', labor_time_hours: '', markup_percent: '',
+  price_override: '',
   dimensions: '', description: '', image_url: '', featured: false,
 };
 
@@ -23,8 +26,14 @@ function ProductForm({ product, onSaved, onCancel }) {
     return {
       name: product.name,
       category: product.category,
-      price_base: String(product.price_base),
       petg_surcharge: petg ? String(petg.surcharge) : '',
+      filament_weight_g: product.filament_weight_g != null ? String(product.filament_weight_g) : '',
+      print_time_hours: product.print_time_hours != null ? String(product.print_time_hours) : '',
+      labor_time_hours: product.labor_time_hours ? String(product.labor_time_hours) : '',
+      markup_percent: product.markup_override != null ? String(product.markup_override * 100) : '',
+      // Existing products (seeded before the calculator existed, or manually
+      // priced) show their current price as the override so it isn't lost.
+      price_override: product.filament_weight_g == null ? String(product.price_base) : '',
       dimensions: product.dimensions ?? '',
       description: product.description ?? '',
       image_url: product.image_url ?? '',
@@ -37,8 +46,21 @@ function ProductForm({ product, onSaved, onCancel }) {
   const set = (field) => (e) =>
     setForm((f) => ({ ...f, [field]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
+  const calc = useMemo(() => calculateProductPrice({
+    filamentWeightG: form.filament_weight_g,
+    printTimeHours: form.print_time_hours,
+    laborTimeHours: form.labor_time_hours || 0,
+    markupPercent: form.markup_percent !== '' ? Number(form.markup_percent) / 100 : undefined,
+  }), [form.filament_weight_g, form.print_time_hours, form.labor_time_hours, form.markup_percent]);
+
+  const finalPrice = form.price_override !== '' ? Number(form.price_override) : calc?.roundedPrice;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!finalPrice || finalPrice <= 0) {
+      setError('Enter filament weight + print time to auto-calculate a price, or set a manual price override.');
+      return;
+    }
     setBusy(true);
     setError(null);
     const materials = [{ type: 'PLA', surcharge: 0 }];
@@ -48,7 +70,11 @@ function ProductForm({ product, onSaved, onCancel }) {
     const row = {
       name: form.name,
       category: form.category,
-      price_base: Number(form.price_base),
+      price_base: finalPrice,
+      filament_weight_g: form.filament_weight_g !== '' ? Number(form.filament_weight_g) : null,
+      print_time_hours: form.print_time_hours !== '' ? Number(form.print_time_hours) : null,
+      labor_time_hours: form.labor_time_hours !== '' ? Number(form.labor_time_hours) : 0,
+      markup_override: form.markup_percent !== '' ? Number(form.markup_percent) / 100 : null,
       dimensions: form.dimensions || null,
       description: form.description,
       image_url: form.image_url || null,
@@ -94,10 +120,6 @@ function ProductForm({ product, onSaved, onCancel }) {
           </select>
         </div>
         <div>
-          <label htmlFor="p-price" className="mb-1 block text-xs font-medium text-slate-500">Base price (₹, PLA)</label>
-          <input id="p-price" required type="number" min="1" placeholder="499" value={form.price_base} onChange={set('price_base')} className={inputClass} />
-        </div>
-        <div>
           <label htmlFor="p-petg" className="mb-1 block text-xs font-medium text-slate-500">PETG surcharge (₹, blank = no PETG option)</label>
           <input id="p-petg" type="number" min="0" placeholder="100" value={form.petg_surcharge} onChange={set('petg_surcharge')} className={inputClass} />
         </div>
@@ -110,6 +132,54 @@ function ProductForm({ product, onSaved, onCancel }) {
           <input id="p-image" placeholder="https://…" value={form.image_url} onChange={set('image_url')} className={inputClass} />
         </div>
       </div>
+
+      <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Price calculator</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <label htmlFor="p-grams" className="mb-1 block text-xs font-medium text-slate-500">Filament used (g)</label>
+            <input id="p-grams" type="number" min="0" step="0.1" placeholder="45" value={form.filament_weight_g} onChange={set('filament_weight_g')} className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="p-print-time" className="mb-1 block text-xs font-medium text-slate-500">Print time (hrs)</label>
+            <input id="p-print-time" type="number" min="0" step="0.1" placeholder="3.5" value={form.print_time_hours} onChange={set('print_time_hours')} className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="p-labor-time" className="mb-1 block text-xs font-medium text-slate-500">Finishing/labor time (hrs — blank = ₹0, most products)</label>
+            <input id="p-labor-time" type="number" min="0" step="0.1" placeholder="0" value={form.labor_time_hours} onChange={set('labor_time_hours')} className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="p-markup" className="mb-1 block text-xs font-medium text-slate-500">
+              Markup % (blank = default {Math.round(PRICING.defaultMarkupPercent * 100)}%)
+            </label>
+            <input id="p-markup" type="number" min="0" step="1" placeholder={String(Math.round(PRICING.defaultMarkupPercent * 100))} value={form.markup_percent} onChange={set('markup_percent')} className={inputClass} />
+          </div>
+        </div>
+
+        {calc ? (
+          <p className="mt-3 text-sm text-slate-600">
+            Material {formatINR(calc.materialCost)} + electricity {formatINR(calc.electricityCost)} + labor {formatINR(calc.laborCost)}
+            {' '}+ waste {formatINR(calc.wasteCost)} + packaging {formatINR(calc.packagingCost)} = cost {formatINR(calc.totalCost)}.{' '}
+            <span className="font-semibold text-slate-900">
+              Suggested price at {Math.round(calc.markup * 100)}% markup: {formatINR(calc.roundedPrice)}
+            </span>
+          </p>
+        ) : (
+          <p className="mt-3 text-sm text-slate-500">Enter filament weight and print time to see the suggested price.</p>
+        )}
+
+        <div className="mt-3">
+          <label htmlFor="p-override" className="mb-1 block text-xs font-medium text-slate-500">
+            Manual price override (₹, optional — leave blank to use the calculated price)
+          </label>
+          <input id="p-override" type="number" min="0" placeholder={calc ? String(calc.roundedPrice) : '499'} value={form.price_override} onChange={set('price_override')} className={inputClass} />
+        </div>
+
+        <p className="mt-2 text-sm font-semibold text-slate-900">
+          Final price: {finalPrice ? formatINR(finalPrice) : '—'}
+        </p>
+      </div>
+
       <div className="mt-3">
         <label htmlFor="p-description" className="mb-1 block text-xs font-medium text-slate-500">Description</label>
         <textarea id="p-description" required placeholder="What is it, what's it good for?" rows={2} value={form.description} onChange={set('description')} className={inputClass} />

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { EVENT_TYPES, INSTAGRAM } from '../lib/constants.js';
 import { logEvent } from '../lib/analytics.js';
-import { insertQuoteRequest, uploadQuoteFile } from '../lib/supabaseClient.js';
+import { insertQuoteRequest, uploadQuoteFile, notifyQuote } from '../lib/supabaseClient.js';
 import InstagramButton from '../components/shared/InstagramButton.jsx';
 
 const inputClass =
@@ -47,7 +47,11 @@ export default function QuotePage() {
         if (!uploaded.ok) throw new Error('File upload failed — please try again or share a link instead.');
         filePath = uploaded.path;
       }
+      // The id is generated here so the confirmation email can reference it
+      // (the anon role can insert quote requests but never read them back).
+      const requestId = crypto.randomUUID();
       const saved = await insertQuoteRequest({
+        id: requestId,
         name: form.name,
         contact: form.contact,
         idea: form.idea,
@@ -56,6 +60,7 @@ export default function QuotePage() {
         metadata: file ? { file_name: file.name, file_size: file.size } : {},
       });
       if (!saved.ok) throw new Error('Could not send your request. Please try again.');
+      notifyQuote(requestId, 'confirmation').catch(() => {});
 
       logEvent(EVENT_TYPES.QUOTE_CLICK, {
         targetId: 'custom',

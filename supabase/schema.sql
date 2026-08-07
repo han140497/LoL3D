@@ -40,7 +40,12 @@ create table if not exists public.products (
   materials   jsonb not null default '[{"type":"PLA","surcharge":0}]'::jsonb,
   image_url   text,
   featured    boolean not null default false,
-  active      boolean not null default true
+  active      boolean not null default true,
+  -- Price-calculator inputs (see src/lib/constants.js PRICING + src/lib/pricing.js).
+  filament_weight_g numeric(10,2),
+  print_time_hours  numeric(10,2),
+  labor_time_hours  numeric(10,2) not null default 0,
+  markup_override   numeric(5,4)
 );
 
 create index if not exists products_category_idx on public.products (category) where active;
@@ -170,6 +175,11 @@ create policy "visitors can request quotes"
   on public.quote_requests for insert
   to anon, authenticated
   with check (true);
+
+create policy "admins update quote requests"
+  on public.quote_requests for update
+  to authenticated
+  using (public.is_admin());
 
 create policy "visitors can upload quote files"
   on storage.objects for insert

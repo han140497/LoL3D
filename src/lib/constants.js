@@ -74,6 +74,19 @@ export const SHIPPING = {
   },
 };
 
+// Auto price-calculator rates. Mirrors LoL3D-Content/pricing_calculator.xlsx
+// ("Rates & Assumptions" sheet) — edit these numbers to match that sheet
+// whenever your real costs change.
+export const PRICING = {
+  filamentCostPerKg: 1200, // ₹ per kg, PLA
+  printerPowerKw: 0.15, // printer power draw
+  electricityRatePerKwh: 8, // ₹ per kWh
+  laborRatePerHour: 200, // ₹ per hour, finishing/labor time
+  packagingCost: 30, // ₹ flat per product
+  wasteAllowancePercent: 0.08, // % of material + electricity cost
+  defaultMarkupPercent: 0.6, // 60% default markup
+};
+
 export const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa',
   'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',

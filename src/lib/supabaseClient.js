@@ -98,6 +98,19 @@ export async function notifyOrder(orderId, kind) {
   return { ok: true, ...data };
 }
 
+// Fire-and-forget-able quote-request email trigger (quote-notify Edge Function).
+export async function notifyQuote(requestId, kind) {
+  if (!isSupabaseConfigured) {
+    console.info('[LoL3D quote notify · offline]', kind, requestId);
+    return { ok: true, offline: true };
+  }
+  const { data, error } = await supabase.functions.invoke('quote-notify', {
+    body: { request_id: requestId, kind },
+  });
+  if (error) return { ok: false, emailed: false, reason: 'notify_unreachable' };
+  return { ok: true, ...data };
+}
+
 // Categories are admin-managed data; the constants list is the fallback
 // for offline mode or a database that predates migration 004.
 export async function fetchCategories() {
