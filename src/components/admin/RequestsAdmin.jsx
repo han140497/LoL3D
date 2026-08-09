@@ -60,7 +60,7 @@ export default function RequestsAdmin() {
   const [quoteNotices, setQuoteNotices] = useState({}); // { [id]: status message string }
   const [quoteDrafts, setQuoteDrafts] = useState({});
   const [converting, setConverting] = useState(null); // req object
-  const [convertForm, setConvertForm] = useState({ price: '', city: '', pincode: '' });
+  const [convertForm, setConvertForm] = useState({ price: '', city: '', pincode: '', payment_status: 'pending' });
   const [convertError, setConvertError] = useState(null);
 
   useEffect(() => {
@@ -148,7 +148,8 @@ export default function RequestsAdmin() {
     
     const saved = await insertOrder({
       id: orderId,
-      status: 'paid',
+      status: 'placed',
+      payment_status: convertForm.payment_status,
       items: [item],
       subtotal: price,
       shipping_cost: 0,
@@ -225,7 +226,7 @@ export default function RequestsAdmin() {
                       type="button"
                       onClick={() => {
                         setConverting({ ...r, type: 'sculpture' });
-                        setConvertForm({ price: '', city: '', pincode: r.metadata?.pincode || '' });
+                        setConvertForm({ price: '', city: '', pincode: r.metadata?.pincode || '', payment_status: 'pending' });
                       }}
                       className="rounded-full bg-brand-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-600"
                     >
@@ -293,7 +294,7 @@ export default function RequestsAdmin() {
                       type="button"
                       onClick={() => {
                         setConverting({ ...r, type: 'quote' });
-                        setConvertForm({ price: r.metadata?.quoted_price || '', city: '', pincode: r.metadata?.pincode || '' });
+                        setConvertForm({ price: r.metadata?.quoted_price || '', city: '', pincode: r.metadata?.pincode || '', payment_status: 'pending' });
                       }}
                       className="rounded-full bg-brand-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-600"
                     >
@@ -397,6 +398,16 @@ export default function RequestsAdmin() {
                   />
                 </div>
               </div>
+              <label className="mt-4 flex items-center gap-2 text-sm text-slate-700 cursor-pointer w-fit">
+                <input
+                  type="checkbox"
+                  checked={convertForm.payment_status === 'paid'}
+                  onChange={(e) => setConvertForm({ ...convertForm, payment_status: e.target.checked ? 'paid' : 'pending' })}
+                  className="rounded border-slate-300 text-brand-500 focus:ring-brand-500"
+                />
+                <span>Payment already received</span>
+              </label>
+
               {convertError && <p className="text-sm text-red-600">{convertError}</p>}
               <div className="mt-6 flex justify-end gap-3">
                 <button
