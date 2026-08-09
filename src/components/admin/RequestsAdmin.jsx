@@ -58,6 +58,7 @@ export default function RequestsAdmin() {
   const [quotes, setQuotes] = useState(null);
   const [error, setError] = useState(null);
   const [quoteNotices, setQuoteNotices] = useState({}); // { [id]: status message string }
+  const [quoteDrafts, setQuoteDrafts] = useState({});
   const [converting, setConverting] = useState(null); // req object
   const [convertForm, setConvertForm] = useState({ price: '', city: '' });
   const [convertError, setConvertError] = useState(null);
