@@ -182,11 +182,11 @@ export default function OrdersAdmin() {
     // Fetch UPI ID from settings
     supabase
       .from('store_settings')
-      .select('value')
-      .eq('key', 'upi_id')
-      .maybeSingle()
+      .select('upi_id')
+      .eq('id', 1)
+      .single()
       .then(({ data }) => {
-        if (data?.value) setUpiId(data.value);
+        if (data?.upi_id) setUpiId(data.upi_id);
       });
   }, []);
 
