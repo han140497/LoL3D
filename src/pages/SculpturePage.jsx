@@ -76,7 +76,7 @@ export default function SculpturePage() {
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [photoError, setPhotoError] = useState(null);
-  const [form, setForm] = useState({ name: '', contact: '', notes: '' });
+  const [form, setForm] = useState({ name: '', contact: '', notes: '', pincode: '' });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [submitted, setSubmitted] = useState(false);
@@ -113,7 +113,7 @@ export default function SculpturePage() {
         notes: form.notes || null,
         photo_path: uploaded.path,
         session_id: sessionStorage.getItem('lol3d_session'),
-        metadata: { photo_name: photo.name, style_name: style.name },
+        metadata: { photo_name: photo.name, style_name: style.name, pincode: form.pincode },
       });
       if (!saved.ok) throw new Error('Could not send your request. Please try again.');
       logEvent(EVENT_TYPES.QUOTE_CLICK, {
@@ -221,6 +221,10 @@ export default function SculpturePage() {
             <div>
               <label htmlFor="contact" className="mb-1.5 block text-sm font-medium text-slate-600">Phone, email, or Instagram</label>
               <input id="contact" required value={form.contact} onChange={set('contact')} className={inputClass} placeholder="9876543210 or @you" />
+            </div>
+            <div>
+              <label htmlFor="pincode" className="mb-1.5 block text-sm font-medium text-slate-600">Delivery Pincode</label>
+              <input id="pincode" required value={form.pincode} onChange={set('pincode')} className={inputClass} placeholder="e.g. 110001" />
             </div>
           </div>
           <div>

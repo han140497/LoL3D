@@ -11,7 +11,7 @@ const ACCEPTED_EXTENSIONS = ['.stl', '.obj', '.3mf', '.step', '.stp'];
 const MAX_FILE_MB = 50;
 
 export default function QuotePage() {
-  const [form, setForm] = useState({ name: '', contact: '', idea: '' });
+  const [form, setForm] = useState({ name: '', contact: '', idea: '', pincode: '' });
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -57,7 +57,10 @@ export default function QuotePage() {
         idea: form.idea,
         file_path: filePath,
         session_id: sessionStorage.getItem('lol3d_session'),
-        metadata: file ? { file_name: file.name, file_size: file.size } : {},
+        metadata: {
+          pincode: form.pincode,
+          ...(file ? { file_name: file.name, file_size: file.size } : {})
+        },
       });
       if (!saved.ok) throw new Error('Could not send your request. Please try again.');
       notifyQuote(requestId, 'confirmation').catch(() => {});
@@ -114,6 +117,12 @@ export default function QuotePage() {
             Phone, email, or Instagram handle
           </label>
           <input id="contact" required value={form.contact} onChange={set('contact')} className={inputClass} placeholder="9876543210 or @janemaker" />
+        </div>
+        <div>
+          <label htmlFor="pincode" className="mb-1.5 block text-sm font-medium text-slate-600">
+            Delivery Pincode
+          </label>
+          <input id="pincode" required value={form.pincode} onChange={set('pincode')} className={inputClass} placeholder="e.g. 110001" />
         </div>
         <div>
           <label htmlFor="idea" className="mb-1.5 block text-sm font-medium text-slate-600">

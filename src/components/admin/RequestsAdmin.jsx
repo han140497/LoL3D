@@ -60,7 +60,7 @@ export default function RequestsAdmin() {
   const [quoteNotices, setQuoteNotices] = useState({}); // { [id]: status message string }
   const [quoteDrafts, setQuoteDrafts] = useState({});
   const [converting, setConverting] = useState(null); // req object
-  const [convertForm, setConvertForm] = useState({ price: '', city: '' });
+  const [convertForm, setConvertForm] = useState({ price: '', city: '', pincode: '' });
   const [convertError, setConvertError] = useState(null);
 
   useEffect(() => {
@@ -159,7 +159,7 @@ export default function RequestsAdmin() {
       address_line1: 'Custom Request',
       city: convertForm.city || 'Unknown',
       state: 'TBD',
-      pincode: '110001',
+      pincode: convertForm.pincode || '110001',
       payment_method: 'manual',
     });
     
@@ -225,7 +225,7 @@ export default function RequestsAdmin() {
                       type="button"
                       onClick={() => {
                         setConverting({ ...r, type: 'sculpture' });
-                        setConvertForm({ price: '', city: '' });
+                        setConvertForm({ price: '', city: '', pincode: r.metadata?.pincode || '' });
                       }}
                       className="rounded-full bg-brand-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-600"
                     >
@@ -293,7 +293,7 @@ export default function RequestsAdmin() {
                       type="button"
                       onClick={() => {
                         setConverting({ ...r, type: 'quote' });
-                        setConvertForm({ price: r.metadata?.quoted_price || '', city: '' });
+                        setConvertForm({ price: r.metadata?.quoted_price || '', city: '', pincode: r.metadata?.pincode || '' });
                       }}
                       className="rounded-full bg-brand-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-600"
                     >
@@ -376,14 +376,26 @@ export default function RequestsAdmin() {
                   className={inputClass}
                 />
               </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-600">Customer City (Optional)</label>
-                <input
-                  value={convertForm.city}
-                  onChange={(e) => setConvertForm({ ...convertForm, city: e.target.value })}
-                  className={inputClass}
-                  placeholder="For dashboard stats"
-                />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-600">Customer City (Optional)</label>
+                  <input
+                    value={convertForm.city}
+                    onChange={(e) => setConvertForm({ ...convertForm, city: e.target.value })}
+                    className={inputClass}
+                    placeholder="For dashboard stats"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-600">Delivery Pincode</label>
+                  <input
+                    required
+                    value={convertForm.pincode}
+                    onChange={(e) => setConvertForm({ ...convertForm, pincode: e.target.value })}
+                    className={inputClass}
+                    placeholder="e.g. 110001"
+                  />
+                </div>
               </div>
               {convertError && <p className="text-sm text-red-600">{convertError}</p>}
               <div className="mt-6 flex justify-end gap-3">
