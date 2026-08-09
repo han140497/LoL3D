@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { formatINR, INDIAN_STATES, EVENT_TYPES } from '../lib/constants.js';
 import { computeShipping, isValidPincode } from '../lib/shipping.js';
 import { logEvent } from '../lib/analytics.js';
-import { insertOrder, notifyOrder } from '../lib/supabaseClient.js';
+import { insertOrder, notifyOrder, supabase } from '../lib/supabaseClient.js';
 import { isPaymentConfigured, payWithRazorpay } from '../lib/payments.js';
 import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -17,7 +17,8 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState(null);
-  const [done, setDone] = useState(null); // { total, paid }
+  const [done, setDone] = useState(null); // { total, paid, upiId, upiLink }
+  const [upiSetting, setUpiSetting] = useState('');
 
   const [form, setForm] = useState({
     name: profile?.full_name ?? '', phone: '', email: user?.email ?? '',
@@ -34,6 +35,13 @@ export default function CheckoutPage() {
       email: f.email || (user?.email ?? ''),
     }));
   }, [user, profile]);
+
+  useEffect(() => {
+    supabase.from('store_settings').select('upi_id').eq('id', 1).single()
+      .then(({ data }) => {
+        if (data?.upi_id) setUpiSetting(data.upi_id);
+      });
+  }, []);
 
   const shipping = computeShipping(form.pincode, subtotal);
   const total = subtotal + (shipping?.cost ?? 0);
@@ -105,7 +113,8 @@ export default function CheckoutPage() {
         metadata: { total, shipping: shipping.cost, item_count: items.length, paid: false },
       });
       clearCart();
-      setDone({ total, paid: false });
+      const upiLink = upiSetting ? `upi://pay?pa=${upiSetting}&pn=LoL3D&am=${total}&cu=INR` : null;
+      setDone({ total, paid: false, upiId: upiSetting, upiLink });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -121,8 +130,31 @@ export default function CheckoutPage() {
         <p className="mt-3 text-slate-600">
           {done.paid
             ? `Payment of ${formatINR(done.total)} received — we're firing up the printers. You'll get shipping updates on WhatsApp/SMS.`
-            : `Your order for ${formatINR(done.total)} is in. We'll send you a UPI payment link on WhatsApp/SMS to confirm it.`}
+            : `Your order for ${formatINR(done.total)} is in.`}
         </p>
+        
+        {!done.paid && done.upiId && (
+          <div className="mt-8 rounded-2xl border border-brand-200 bg-brand-50 p-6 max-w-sm mx-auto">
+            <h2 className="text-lg font-semibold text-slate-900">Complete Payment</h2>
+            <p className="mt-2 text-sm text-slate-600">Pay directly to our UPI ID below to confirm your order.</p>
+            <div className="mt-4 rounded-lg bg-white py-3 px-4 text-center border border-brand-200 font-mono text-lg font-semibold text-brand-700">
+              {done.upiId}
+            </div>
+            {done.upiLink && (
+              <a
+                href={done.upiLink}
+                className="mt-4 block w-full rounded-full bg-brand-500 py-3 font-semibold text-white transition-colors hover:bg-brand-600"
+              >
+                Pay {formatINR(done.total)} via UPI App
+              </a>
+            )}
+            <p className="mt-4 text-xs text-slate-500">Or we'll send you a reminder on WhatsApp shortly.</p>
+          </div>
+        )}
+        {!done.paid && !done.upiId && (
+          <p className="mt-3 text-slate-600">We'll send you a UPI payment link on WhatsApp/SMS to confirm it.</p>
+        )}
+
         <button
           type="button"
           onClick={() => navigate('/catalog')}

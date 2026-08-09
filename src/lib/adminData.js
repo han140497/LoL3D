@@ -69,62 +69,11 @@ function aggregate(orders, events, quoteCount) {
 }
 
 // ---------------------------------------------------------------------------
-// Sample data — lets the dashboard render before Supabase is connected.
-// ---------------------------------------------------------------------------
-function sampleData() {
-  // Deterministic pseudo-random so the demo is stable between reloads.
-  let seed = 42;
-  const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-
-  const orders = [];
-  const events = [];
-  const now = Date.now();
-  const devices = ['mobile', 'mobile', 'mobile', 'desktop', 'tablet'];
-  const sources = ['instagram', 'instagram', 'direct', 'direct', 'other referrer'];
-  const statuses = ['paid', 'paid', 'placed', 'shipped', 'delivered'];
-
-  for (let d = 0; d < DAYS; d++) {
-    const dayMs = now - d * 86400000;
-    const orderCount = Math.floor(rand() * 4);
-    for (let i = 0; i < orderCount; i++) {
-      const product = PRODUCTS[Math.floor(rand() * PRODUCTS.length)];
-      const qty = rand() > 0.8 ? 2 : 1;
-      const price = Number(product.price_base);
-      orders.push({
-        id: `sample-${d}-${i}`,
-        created_at: new Date(dayMs).toISOString(),
-        status: statuses[Math.floor(rand() * statuses.length)],
-        items: [{ name: product.name, qty, unitPrice: price, material: 'PLA' }],
-        total: price * qty + 99,
-        customer_name: 'Sample Customer',
-        city: ['Hyderabad', 'Bengaluru', 'Mumbai', 'Delhi', 'Pune'][Math.floor(rand() * 5)],
-      });
-    }
-    const sessionCount = 4 + Math.floor(rand() * 10);
-    for (let s = 0; s < sessionCount; s++) {
-      const sessionId = `s-${d}-${s}`;
-      const device = devices[Math.floor(rand() * devices.length)];
-      const source = sources[Math.floor(rand() * sources.length)];
-      const meta = source === 'instagram' ? { utm_source: 'instagram' } : {};
-      const push = (event_type, target_name) =>
-        events.push({ event_type, target_name, session_id: sessionId, device_type: device, metadata: meta, referrer: source === 'other referrer' ? 'google.com' : '' });
-      push('page_view');
-      if (rand() > 0.3) push('product_click', PRODUCTS[Math.floor(rand() * PRODUCTS.length)].name);
-      if (rand() > 0.6) push('add_to_cart');
-      if (rand() > 0.75) push('instagram_click');
-      if (rand() > 0.9) { push('begin_checkout'); push('purchase'); }
-    }
-  }
-  orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  return aggregate(orders, events, 7);
-}
-
-// ---------------------------------------------------------------------------
 // Public API — { sample: bool, ...metrics }
 // ---------------------------------------------------------------------------
 export async function fetchDashboardData() {
   if (!isSupabaseConfigured) {
-    return { sample: true, ...sampleData() };
+    return { sample: true, ...aggregate([], [], 0) };
   }
   const since = new Date(Date.now() - DAYS * 86400000).toISOString();
   const [ordersRes, eventsRes, quotesRes] = await Promise.all([

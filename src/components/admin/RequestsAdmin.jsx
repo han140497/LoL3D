@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase, notifyQuote } from '../../lib/supabaseClient.js';
+import { supabase, notifyQuote, insertOrder } from '../../lib/supabaseClient.js';
 import { SCULPTURE_STYLES, formatINR } from '../../lib/constants.js';
 
 const inputClass =
@@ -57,8 +57,10 @@ export default function RequestsAdmin() {
   const [sculptures, setSculptures] = useState(null);
   const [quotes, setQuotes] = useState(null);
   const [error, setError] = useState(null);
-  const [quoteDrafts, setQuoteDrafts] = useState({}); // { [id]: { price, note, open } }
   const [quoteNotices, setQuoteNotices] = useState({}); // { [id]: status message string }
+  const [converting, setConverting] = useState(null); // req object
+  const [convertForm, setConvertForm] = useState({ price: '', city: '' });
+  const [convertError, setConvertError] = useState(null);
 
   useEffect(() => {
     supabase.from('sculpture_requests').select('*').order('created_at', { ascending: false }).limit(50)
@@ -130,6 +132,45 @@ export default function RequestsAdmin() {
     setList((prev) => prev.filter((r) => r.id !== req.id));
   };
 
+  const handleConvert = async (e) => {
+    e.preventDefault();
+    setConvertError(null);
+    if (!convertForm.price || isNaN(convertForm.price)) return setConvertError('Please enter a valid price');
+    const price = Number(convertForm.price);
+    const orderId = crypto.randomUUID();
+    const item = {
+      name: converting.type === 'quote' ? `Custom Print: ${converting.idea.slice(0, 30)}...` : `Custom Sculpture: ${converting.style}`,
+      qty: 1,
+      unitPrice: price,
+      material: converting.type === 'quote' ? 'Custom' : 'Resin'
+    };
+    
+    const saved = await insertOrder({
+      id: orderId,
+      status: 'paid',
+      items: [item],
+      subtotal: price,
+      shipping_cost: 0,
+      total: price,
+      customer_name: converting.name,
+      phone: converting.contact,
+      email: null,
+      address_line1: 'Custom Request',
+      city: convertForm.city || 'Unknown',
+      state: 'TBD',
+      pincode: '000000',
+      payment_method: 'manual',
+    });
+    
+    if (!saved.ok) {
+      setConvertError(saved.error || 'Failed to create order');
+      return;
+    }
+    
+    setConverting(null);
+    alert('Order created successfully!');
+  };
+
   if (error) {
     return (
       <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -178,6 +219,18 @@ export default function RequestsAdmin() {
                       {s.replaceAll('_', ' ')}
                     </button>
                   ))}
+                  {r.status === 'confirmed' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConverting({ ...r, type: 'sculpture' });
+                        setConvertForm({ price: '', city: '' });
+                      }}
+                      className="rounded-full bg-brand-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-600"
+                    >
+                      Convert to Order
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => deleteRequest({ table: 'sculpture_requests', bucket: 'sculpture-photos', req: r, filePath: r.photo_path, setList: setSculptures })}
@@ -234,6 +287,18 @@ export default function RequestsAdmin() {
                   >
                     Accepted
                   </button>
+                  {r.status === 'accepted' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConverting({ ...r, type: 'quote' });
+                        setConvertForm({ price: r.metadata?.quoted_price || '', city: '' });
+                      }}
+                      className="rounded-full bg-brand-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-600"
+                    >
+                      Convert to Order
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => advanceQuote(r, 'declined')}
@@ -290,6 +355,55 @@ export default function RequestsAdmin() {
           </ul>
         )}
       </section>
+
+      {converting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-slate-900">Convert to Order</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Create a paid order for {converting.name}'s request. This will add to your dashboard stats.
+            </p>
+            <form onSubmit={handleConvert} className="mt-5 space-y-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-600">Final Price (₹)</label>
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  value={convertForm.price}
+                  onChange={(e) => setConvertForm({ ...convertForm, price: e.target.value })}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-600">Customer City (Optional)</label>
+                <input
+                  value={convertForm.city}
+                  onChange={(e) => setConvertForm({ ...convertForm, city: e.target.value })}
+                  className={inputClass}
+                  placeholder="For dashboard stats"
+                />
+              </div>
+              {convertError && <p className="text-sm text-red-600">{convertError}</p>}
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setConverting(null)}
+                  className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
+                >
+                  Create Order
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import ProductsAdmin from '../components/admin/ProductsAdmin.jsx';
 import RequestsAdmin from '../components/admin/RequestsAdmin.jsx';
 import OrdersAdmin from '../components/admin/OrdersAdmin.jsx';
 import CategoriesAdmin from '../components/admin/CategoriesAdmin.jsx';
+import SettingsAdmin from '../components/admin/SettingsAdmin.jsx';
 
 const BAR = '#ea580c'; // single sequential hue (≥3:1 on white) — one series per chart, direct-labeled
 
@@ -130,6 +131,7 @@ export default function AdminPage() {
     { id: 'products', label: 'Products' },
     { id: 'categories', label: 'Categories' },
     { id: 'requests', label: 'Requests' },
+    { id: 'settings', label: 'Settings' },
   ];
 
   return (
@@ -181,6 +183,11 @@ export default function AdminPage() {
       {tab === 'requests' && (
         <div className="mt-6">
           {configured ? <RequestsAdmin /> : <p className="text-slate-500">Connect Supabase to see customer requests.</p>}
+        </div>
+      )}
+      {tab === 'settings' && (
+        <div className="mt-6">
+          {configured ? <SettingsAdmin /> : <p className="text-slate-500">Connect Supabase to manage settings.</p>}
         </div>
       )}
 
