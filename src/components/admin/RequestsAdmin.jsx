@@ -159,7 +159,7 @@ export default function RequestsAdmin() {
       address_line1: 'Custom Request',
       city: convertForm.city || 'Unknown',
       state: 'TBD',
-      pincode: '000000',
+      pincode: '110001',
       payment_method: 'manual',
     });
     
