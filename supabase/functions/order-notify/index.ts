@@ -12,6 +12,8 @@
 //       only to the email stored on the order.
 //   { order_id, kind: "status" }       — status-update email; caller must
 //       be an admin (checked via their JWT).
+//   { order_id, kind: "payment_reported" } — from customer; updates status and emails admin.
+//   { order_id, kind: "payment_confirmed" } — from admin; emails customer receipt.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const CORS = {
@@ -74,7 +76,7 @@ Deno.serve(async (req) => {
   try {
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const { order_id, kind } = await req.json();
-    if (!order_id || !['confirmation', 'status'].includes(kind)) return json({ error: 'Bad request' }, 400);
+    if (!order_id || !['confirmation', 'status', 'payment_reported', 'payment_confirmed'].includes(kind)) return json({ error: 'Bad request' }, 400);
 
     const { data: order, error } = await admin.from('orders').select('*').eq('id', order_id).maybeSingle();
     if (error || !order) return json({ error: 'Order not found' }, 404);
@@ -91,12 +93,46 @@ Deno.serve(async (req) => {
       return json({ ok: true, emailed: result.sent, reason: result.reason });
     }
 
-    // kind === 'status' — admin only
+    if (kind === 'payment_reported') {
+      const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+      const { data: userData } = await admin.auth.getUser(token ?? '');
+      // Only the order owner can report payment
+      if (!userData.user || userData.user.id !== order.user_id) return json({ error: 'Unauthorized' }, 403);
+      
+      await admin.from('orders').update({ payment_status: 'reported' }).eq('id', order.id);
+
+      // Email the admin
+      const { data: adminProfiles } = await admin.from('profiles').select('id').eq('is_admin', true).limit(1);
+      if (adminProfiles?.length) {
+        const { data: adminUser } = await admin.auth.admin.getUserById(adminProfiles[0].id);
+        const adminEmail = adminUser?.user?.email;
+        if (adminEmail) {
+          const subject = `Payment reported for order #${order.id.slice(0, 8)}`;
+          const html = `<div style="font-family:sans-serif;color:#333;">
+            <h2>Payment Reported</h2>
+            <p>Customer <strong>${order.customer_name}</strong> has reported paying ${inr(order.total as number)} for order #${order.id.slice(0, 8)}.</p>
+            <p>Check your UPI app / bank statement to verify.</p>
+            <p><a href="https://lol3d.in/admin/orders" style="display:inline-block;padding:10px 20px;background:#ea580c;color:#fff;text-decoration:none;border-radius:5px;">Verify in Dashboard</a></p>
+          </div>`;
+          await sendEmail(adminEmail, subject, html);
+        }
+      }
+      return json({ ok: true });
+    }
+
+    // kind === 'status' or 'payment_confirmed' — admin only
     const token = req.headers.get('Authorization')?.replace('Bearer ', '');
     const { data: userData } = await admin.auth.getUser(token ?? '');
     if (!userData.user) return json({ error: 'Sign in required' }, 401);
     const { data: profile } = await admin.from('profiles').select('is_admin').eq('id', userData.user.id).maybeSingle();
     if (!profile?.is_admin) return json({ error: 'Admins only' }, 403);
+
+    if (kind === 'payment_confirmed') {
+      const subject = `Payment received — LoL3D order #${order.id.slice(0, 8)}`;
+      const html = orderEmailHtml(order, 'Payment Confirmed! 🎉', 'We have received your payment. Your order is now moving to the print queue.');
+      const result = await sendEmail(order.email, subject, html);
+      return json({ ok: true, emailed: result.sent, reason: result.reason });
+    }
 
     const copy = STATUS_COPY[order.status] ?? STATUS_COPY.placed;
     const result = await sendEmail(order.email, `${copy.subject} — LoL3D order #${order.id.slice(0, 8)}`,

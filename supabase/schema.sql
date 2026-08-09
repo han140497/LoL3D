@@ -59,7 +59,7 @@ create table if not exists public.orders (
   status         text not null default 'placed'
                  check (status in ('placed', 'printing', 'shipped', 'delivered', 'cancelled')),
   payment_status text not null default 'pending'
-                 check (payment_status in ('pending', 'paid', 'refunded')),
+                 check (payment_status in ('pending', 'reported', 'paid', 'refunded')),
   items          jsonb not null,      -- [{slug, name, material, unitPrice, qty}]
   subtotal       numeric(10,2) not null,
   shipping_cost  numeric(10,2) not null,

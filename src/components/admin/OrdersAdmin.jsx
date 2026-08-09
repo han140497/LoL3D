@@ -39,6 +39,13 @@ function OrderCard({ order, upiId, onStatusChange, onPaymentStatusChange }) {
 
   const setPaymentStatus = async (payment_status) => {
     if (payment_status === order.payment_status) return;
+    
+    if (payment_status === 'paid') {
+      if (!window.confirm(`Confirm payment received for order #${order.id.slice(0, 8)}? This will email a receipt to the customer.`)) {
+        return;
+      }
+    }
+    
     setBusy(true);
     setNote(null);
     const { error } = await supabase.from('orders').update({ payment_status }).eq('id', order.id);
@@ -47,8 +54,16 @@ function OrderCard({ order, upiId, onStatusChange, onPaymentStatusChange }) {
       return setNote(`❌ ${error.message}`);
     }
     onPaymentStatusChange(order.id, payment_status);
+    
+    if (payment_status === 'paid') {
+      const result = await notifyOrder(order.id, 'payment_confirmed');
+      if (result.emailed) setNote('✓ Payment status saved · receipt emailed');
+      else if (result.reason === 'no_email_on_order') setNote('✓ Payment status saved · no email on this order');
+      else setNote(`✓ Payment status saved · email failed: ${result.reason ?? 'unknown'}`);
+    } else {
+      setNote('✓ Payment status saved');
+    }
     setBusy(false);
-    setNote('✓ Payment status saved');
   };
 
   return (
@@ -106,7 +121,7 @@ function OrderCard({ order, upiId, onStatusChange, onPaymentStatusChange }) {
       
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="text-xs font-medium text-slate-500 uppercase tracking-wider mr-2">Payment:</span>
-        {['pending', 'paid', 'refunded'].map((s) => (
+        {['pending', 'reported', 'paid', 'refunded'].map((s) => (
           <button
             key={s}
             type="button"
@@ -114,11 +129,11 @@ function OrderCard({ order, upiId, onStatusChange, onPaymentStatusChange }) {
             onClick={() => setPaymentStatus(s)}
             className={`rounded-full px-3 py-1 text-xs font-semibold capitalize transition-colors disabled:opacity-50 ${
               order.payment_status === s
-                ? (s === 'paid' ? 'bg-emerald-100 text-emerald-700' : s === 'refunded' ? 'bg-orange-100 text-orange-700' : 'bg-slate-200 text-slate-600')
+                ? (s === 'paid' ? 'bg-emerald-100 text-emerald-700' : s === 'refunded' ? 'bg-orange-100 text-orange-700' : s === 'reported' ? 'bg-blue-100 text-blue-700 border border-blue-200 ring-1 ring-blue-300' : 'bg-amber-100 text-amber-700')
                 : 'bg-slate-100 text-slate-500 hover:text-slate-900'
             }`}
           >
-            {s}
+            {s === 'reported' ? 'Customer Reported' : s}
           </button>
         ))}
         {order.payment_status === 'pending' && upiId && (
