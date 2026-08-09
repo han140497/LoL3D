@@ -63,7 +63,7 @@ export default function AccountPage() {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  const pendingOrders = orders?.filter((o) => o.payment_status === 'pending') ?? [];
+  const pendingOrders = orders?.filter((o) => o.payment_status === 'pending' && o.status !== 'cancelled') ?? [];
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
@@ -149,7 +149,7 @@ export default function AccountPage() {
               </p>
               <p className="mt-1 font-bold text-slate-900">{formatINR(order.total)}</p>
 
-              {order.payment_status === 'pending' && upiId && (
+              {order.payment_status === 'pending' && order.status !== 'cancelled' && upiId && (
                 <div className="mt-6 rounded-xl bg-slate-50 p-5 border border-slate-200 text-center sm:text-left sm:flex sm:items-start sm:justify-between sm:gap-6">
                   <div>
                     <h4 className="font-semibold text-slate-900">Complete your payment via UPI</h4>

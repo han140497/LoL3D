@@ -136,7 +136,7 @@ function OrderCard({ order, upiId, onStatusChange, onPaymentStatusChange }) {
             {s === 'reported' ? 'Customer Reported' : s}
           </button>
         ))}
-        {order.payment_status === 'pending' && upiId && (
+        {order.payment_status === 'pending' && order.status !== 'cancelled' && upiId && (
           <button
             type="button"
             onClick={() => setShowQR(true)}
