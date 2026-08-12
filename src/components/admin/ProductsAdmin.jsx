@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient.js';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { supabase, uploadProductImage, deleteProductImage } from '../../lib/supabaseClient.js';
 import { formatINR, PRICING } from '../../lib/constants.js';
 import { calculateProductPrice } from '../../lib/pricing.js';
 import { useCatalog } from '../../context/CatalogContext.jsx';
@@ -14,7 +14,7 @@ const EMPTY = {
   name: '', category: 'functional', petg_surcharge: '',
   filament_weight_g: '', print_time_hours: '', labor_time_hours: '', markup_percent: '',
   price_override: '',
-  dimensions: '', description: '', image_url: '', featured: false,
+  dimensions: '', description: '', featured: false,
 };
 
 // One form for both adding and editing. `product` = null → add mode.
@@ -36,12 +36,41 @@ function ProductForm({ product, onSaved, onCancel }) {
       price_override: product.filament_weight_g == null ? String(product.price_base) : '',
       dimensions: product.dimensions ?? '',
       description: product.description ?? '',
-      image_url: product.image_url ?? '',
       featured: product.featured,
     };
   });
+  // Gallery photos: uploaded straight from disk instead of pasting a link.
+  // The first one is the primary photo shown everywhere except the product page.
+  const [images, setImages] = useState(() => {
+    if (product?.images?.length) return product.images;
+    if (product?.image_url) return [product.image_url];
+    return [];
+  });
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+
+  const handleFiles = async (fileList) => {
+    const files = Array.from(fileList ?? []).filter((f) => f.type.startsWith('image/'));
+    if (files.length === 0) return;
+    setUploading(true);
+    setError(null);
+    const results = await Promise.all(files.map(uploadProductImage));
+    setUploading(false);
+    const failed = results.find((r) => !r.ok);
+    if (failed) return setError(`Image upload failed: ${failed.error}`);
+    setImages((prev) => [...prev, ...results.map((r) => r.url)]);
+  };
+
+  const removeImage = (url) => {
+    setImages((prev) => prev.filter((u) => u !== url));
+    deleteProductImage(url); // best effort — don't block the UI on it
+  };
+
+  const makePrimary = (url) => {
+    setImages((prev) => [url, ...prev.filter((u) => u !== url)]);
+  };
 
   const set = (field) => (e) =>
     setForm((f) => ({ ...f, [field]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
@@ -77,7 +106,8 @@ function ProductForm({ product, onSaved, onCancel }) {
       markup_override: form.markup_percent !== '' ? Number(form.markup_percent) / 100 : null,
       dimensions: form.dimensions || null,
       description: form.description,
-      image_url: form.image_url || null,
+      image_url: images[0] || null,
+      images,
       featured: form.featured,
       materials,
     };
@@ -94,7 +124,10 @@ function ProductForm({ product, onSaved, onCancel }) {
           : saveError.message,
       );
     }
-    if (!product) setForm(EMPTY);
+    if (!product) {
+      setForm(EMPTY);
+      setImages([]);
+    }
     onSaved();
   };
 
@@ -127,10 +160,57 @@ function ProductForm({ product, onSaved, onCancel }) {
           <label htmlFor="p-dimensions" className="mb-1 block text-xs font-medium text-slate-500">Dimensions</label>
           <input id="p-dimensions" placeholder="120 × 80 × 40 mm" value={form.dimensions} onChange={set('dimensions')} className={inputClass} />
         </div>
-        <div>
-          <label htmlFor="p-image" className="mb-1 block text-xs font-medium text-slate-500">Image URL (optional)</label>
-          <input id="p-image" placeholder="https://…" value={form.image_url} onChange={set('image_url')} className={inputClass} />
+      </div>
+
+      <div className="mt-4">
+        <label className="mb-1 block text-xs font-medium text-slate-500">
+          Photos (optional — first one is the main photo; upload one or several)
+        </label>
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
+          onClick={() => fileInputRef.current?.click()}
+          className="cursor-pointer rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/60 px-4 py-6 text-center text-sm text-slate-500 transition-colors hover:border-brand-400 hover:bg-brand-50/40"
+        >
+          {uploading ? 'Uploading…' : 'Click to choose photos, or drag and drop — one or many'}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }}
+          />
         </div>
+
+        {images.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-3">
+            {images.map((url, i) => (
+              <div key={url} className="group relative h-24 w-24 overflow-hidden rounded-lg border border-slate-200">
+                <img src={url} alt="" className="h-full w-full object-cover" />
+                {i === 0 ? (
+                  <span className="absolute left-1 top-1 rounded-full bg-brand-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">Main</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => makePrimary(url)}
+                    className="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 text-[10px] font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    Make main
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeImage(url)}
+                  aria-label="Remove photo"
+                  className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
@@ -189,7 +269,7 @@ function ProductForm({ product, onSaved, onCancel }) {
           <input type="checkbox" checked={form.featured} onChange={set('featured')} className="accent-brand-500" />
           Featured (shows in the Insta grid)
         </label>
-        <button type="submit" disabled={busy} className="rounded-full bg-brand-500 px-6 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50">
+        <button type="submit" disabled={busy || uploading} className="rounded-full bg-brand-500 px-6 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50">
           {busy ? 'Saving…' : product ? 'Save changes' : 'Add product'}
         </button>
       </div>
@@ -255,7 +335,16 @@ export default function ProductsAdmin() {
           <tbody className="divide-y divide-slate-100">
             {products.map((p) => (
               <tr key={p.id} className={p.active ? '' : 'opacity-50'}>
-                <td className="py-2.5 pr-4 text-slate-900">{p.name}</td>
+                <td className="py-2.5 pr-4 text-slate-900">
+                  <div className="flex items-center gap-3">
+                    {p.image_url ? (
+                      <img src={p.image_url} alt="" className="h-8 w-8 rounded-lg object-cover" />
+                    ) : (
+                      <div className="h-8 w-8 rounded-lg bg-slate-100" />
+                    )}
+                    {p.name}
+                  </div>
+                </td>
                 <td className="py-2.5 pr-4 text-slate-500">{categories.find((c) => c.id === p.category)?.name ?? p.category}</td>
                 <td className="py-2.5 pr-4 text-slate-600">{formatINR(p.price_base)}</td>
                 <td className="py-2.5 pr-4">

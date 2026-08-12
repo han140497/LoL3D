@@ -23,7 +23,11 @@ export function AuthProvider({ children }) {
       setUser(data.session?.user ?? null);
       setLoading(false);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN') {
+        // Claim guest orders first so Account page sees them on initial load
+        await supabase.rpc('claim_guest_orders').catch(() => {});
+      }
       setUser(session?.user ?? null);
     });
     return () => sub.subscription.unsubscribe();

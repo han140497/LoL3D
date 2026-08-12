@@ -72,6 +72,31 @@ async function uploadToBucket(bucket, file) {
 export const uploadQuoteFile = (file) => uploadToBucket('quote-uploads', file);
 export const uploadSculpturePhoto = (file) => uploadToBucket('sculpture-photos', file);
 
+// Product photos live in a *public* bucket (unlike the two above) since
+// they're shown to every visitor on the storefront, not just admins.
+export async function uploadProductImage(file) {
+  if (!isSupabaseConfigured) {
+    console.info('[LoL3D product image · offline]', file.name, `${(file.size / 1e6).toFixed(1)} MB`);
+    return { ok: true, offline: true, url: URL.createObjectURL(file), path: null };
+  }
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+  const { error } = await supabase.storage.from('product-images').upload(path, file);
+  if (error) {
+    console.error('[LoL3D] product image upload failed:', error.message);
+    return { ok: false, error: error.message };
+  }
+  const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+  return { ok: true, url: data.publicUrl, path };
+}
+
+// Best-effort cleanup when an admin removes a photo from a product's gallery.
+export async function deleteProductImage(url) {
+  if (!isSupabaseConfigured || !url) return;
+  const path = url.split('/product-images/')[1];
+  if (!path) return;
+  await supabase.storage.from('product-images').remove([decodeURIComponent(path)]);
+}
+
 export async function insertSculptureRequest(request) {
   if (!isSupabaseConfigured) {
     console.info('[LoL3D sculpture · offline]', request);

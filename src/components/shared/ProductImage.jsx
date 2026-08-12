@@ -28,9 +28,10 @@ const CATEGORY_ART = {
   },
 };
 
-export default function ProductImage({ product, className = '' }) {
-  // Prefer the DB-stored URL, then fall back to the local static asset.
-  const initialSrc = product.image_url || (product.slug ? `/products/${product.slug}/hero.webp` : null);
+export default function ProductImage({ product, className = '', src }) {
+  // `src` lets a gallery override which photo is shown; otherwise prefer the
+  // DB-stored URL, then fall back to the local static asset.
+  const initialSrc = src || product.image_url || (product.slug ? `/products/${product.slug}/hero.webp` : null);
   const [errored, setErrored] = useState(false);
 
   if (initialSrc && !errored) {

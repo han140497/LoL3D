@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { INSTAGRAM, formatINR } from '../lib/constants.js';
 import { useCatalog } from '../context/CatalogContext.jsx';
@@ -13,6 +13,8 @@ export default function ProductPage() {
   const product = products.find((p) => p.slug === slug);
   const [material, setMaterial] = useState(null);
   const [justAdded, setJustAdded] = useState(false);
+  const [activeImage, setActiveImage] = useState(null);
+  useEffect(() => setActiveImage(null), [slug]);
 
   if (loading) {
     return (
@@ -42,6 +44,8 @@ export default function ProductPage() {
   const categoryName = categories.find((c) => c.id === product.category)?.name;
   const selected = material ?? product.materials[0];
   const price = Number(product.price_base) + Number(selected.surcharge ?? 0);
+  const gallery = product.images?.length ? product.images : product.image_url ? [product.image_url] : [];
+  const currentImage = activeImage ?? gallery[0] ?? null;
 
   const handleAddToCart = () => {
     addItem(product, selected);
@@ -56,8 +60,26 @@ export default function ProductPage() {
       </Link>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-2">
-        <div className="aspect-square overflow-hidden rounded-3xl border border-slate-200">
-          <ProductImage product={product} />
+        <div>
+          <div className="aspect-square overflow-hidden rounded-3xl border border-slate-200">
+            <ProductImage key={currentImage} product={product} src={currentImage} />
+          </div>
+          {gallery.length > 1 && (
+            <div className="mt-3 flex gap-2 overflow-x-auto">
+              {gallery.map((url) => (
+                <button
+                  key={url}
+                  type="button"
+                  onClick={() => setActiveImage(url)}
+                  className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 ${
+                    url === currentImage ? 'border-brand-500' : 'border-transparent'
+                  }`}
+                >
+                  <img src={url} alt="" className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="py-2">
