@@ -37,8 +37,8 @@ export default function ProductCard({ product }) {
         </h3>
         <div className="mt-2 flex items-center justify-between">
           <span className="text-lg font-bold text-slate-900">
+            <span className="mr-1 text-xs font-normal text-slate-500">from</span>
             {formatINR(product.price_base)}
-            <span className="ml-1 text-xs font-normal text-slate-500">from</span>
           </span>
           <span className="flex gap-1">
             {product.materials.map((m) => (
