@@ -1,11 +1,14 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/home/Hero.jsx';
 import InstaFeedSection from '../components/home/InstaFeedSection.jsx';
 import QuoteCTA from '../components/home/QuoteCTA.jsx';
 import ProductGrid from '../components/catalog/ProductGrid.jsx';
+import IndependenceDayBanner from '../components/home/IndependenceDayBanner.jsx';
 import { EVENT_TYPES, SCULPTURE_STYLES, formatINR } from '../lib/constants.js';
 import { logEvent } from '../lib/analytics.js';
 import { useCatalog } from '../context/CatalogContext.jsx';
+import { fetchActiveCampaign } from '../lib/campaigns.js';
 
 // Marketplace-style home: the entire catalog is on the page, grouped by
 // category, with featured items first in each section.
@@ -86,9 +89,15 @@ function SculptureCTA() {
 
 export default function HomePage() {
   const { products, categories, loading } = useCatalog();
+  const [campaign, setCampaign] = useState(null);
+
+  useEffect(() => {
+    fetchActiveCampaign().then(setCampaign);
+  }, []);
 
   return (
     <main>
+      <IndependenceDayBanner campaign={campaign} />
       <Hero />
       {categories.map((cat, i) => (
         <div key={cat.id}>

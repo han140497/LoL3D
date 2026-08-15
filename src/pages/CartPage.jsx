@@ -3,6 +3,7 @@ import { formatINR, SHIPPING, EVENT_TYPES } from '../lib/constants.js';
 import { logEvent } from '../lib/analytics.js';
 import { useCart } from '../context/CartContext.jsx';
 import { useCatalog } from '../context/CatalogContext.jsx';
+import { useCampaignDiscount } from '../lib/campaigns.js';
 import ProductImage from '../components/shared/ProductImage.jsx';
 
 function QtyControl({ line, setQty }) {
@@ -33,6 +34,7 @@ export default function CartPage() {
   const { items, setQty, removeItem, subtotal, count } = useCart();
   const { products } = useCatalog();
   const navigate = useNavigate();
+  const { campaign, eligible, discountPct } = useCampaignDiscount();
 
   if (items.length === 0) {
     return (
@@ -49,7 +51,9 @@ export default function CartPage() {
     );
   }
 
-  const freeShippingGap = SHIPPING.FREE_ABOVE - subtotal;
+  const discountAmount = eligible ? Math.round(subtotal * discountPct) : 0;
+  const discountedSubtotal = subtotal - discountAmount;
+  const freeShippingGap = SHIPPING.FREE_ABOVE - discountedSubtotal;
 
   const handleCheckout = () => {
     logEvent(EVENT_TYPES.BEGIN_CHECKOUT, {
@@ -98,9 +102,36 @@ export default function CartPage() {
         })}
       </ul>
 
+      {/* Campaign discount banner in cart */}
+      {campaign && !eligible && (
+        <div className="mt-4 flex items-center gap-3 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3">
+          <span className="text-lg">🇮🇳</span>
+          <p className="text-sm text-orange-800">
+            <span className="font-semibold">{campaign.discount_percent}% Independence Day discount</span> is waiting for you —{' '}
+            <Link to="/login" className="underline hover:text-orange-900">sign in</Link> to apply it to your first order.
+          </p>
+        </div>
+      )}
+
       <div className="mt-6 flex flex-col items-end gap-2">
+        {eligible && discountAmount > 0 && (
+          <div className="flex w-full items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5">
+            <p className="text-sm font-semibold text-emerald-800">
+              🇮🇳 Independence Day — {campaign.discount_percent}% off first order
+            </p>
+            <p className="text-sm font-bold text-emerald-700">−{formatINR(discountAmount)}</p>
+          </div>
+        )}
         <p className="text-lg text-slate-600">
-          Subtotal: <span className="ml-2 text-2xl font-bold text-slate-900">{formatINR(subtotal)}</span>
+          Subtotal:{' '}
+          {eligible && discountAmount > 0 ? (
+            <>
+              <span className="ml-1 text-base line-through text-slate-400">{formatINR(subtotal)}</span>
+              <span className="ml-2 text-2xl font-bold text-slate-900">{formatINR(discountedSubtotal)}</span>
+            </>
+          ) : (
+            <span className="ml-2 text-2xl font-bold text-slate-900">{formatINR(subtotal)}</span>
+          )}
         </p>
         <p className="text-sm text-slate-500">
           {freeShippingGap > 0

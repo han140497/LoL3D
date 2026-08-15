@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { EVENT_TYPES, INSTAGRAM } from '../lib/constants.js';
 import { logEvent } from '../lib/analytics.js';
 import { insertQuoteRequest, uploadQuoteFile, notifyQuote } from '../lib/supabaseClient.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import InstagramButton from '../components/shared/InstagramButton.jsx';
 
 const inputClass =
@@ -11,6 +13,7 @@ const ACCEPTED_EXTENSIONS = ['.stl', '.obj', '.3mf', '.step', '.stp'];
 const MAX_FILE_MB = 50;
 
 export default function QuotePage() {
+  const { user, profile, loading: authLoading, configured } = useAuth();
   const [form, setForm] = useState({ name: '', contact: '', idea: '', pincode: '' });
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState(null);
@@ -19,6 +22,12 @@ export default function QuotePage() {
   const [submitted, setSubmitted] = useState(false);
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
+
+  // Pre-fill name and email from signed-in profile
+  useEffect(() => {
+    if (profile?.full_name) setForm((f) => ({ ...f, name: f.name || profile.full_name }));
+    if (user?.email) setForm((f) => ({ ...f, contact: f.contact || user.email }));
+  }, [user, profile]);
 
   const handleFile = (e) => {
     const selected = e.target.files?.[0];
@@ -77,6 +86,34 @@ export default function QuotePage() {
       setSubmitting(false);
     }
   };
+
+  // Require sign-in
+  if (configured && authLoading) {
+    return <main className="px-4 py-24 text-center text-slate-500">Loading…</main>;
+  }
+  if (configured && !user) {
+    return (
+      <main className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6">
+        <div className="text-5xl">🔐</div>
+        <h1 className="mt-4 text-2xl font-bold text-slate-900">Sign in to request a quote</h1>
+        <p className="mt-3 text-slate-500">
+          Create a free account to submit a custom print request. Your name and email will be pulled in automatically.
+        </p>
+        <div className="mt-6 flex flex-col items-center gap-3">
+          <Link
+            to="/login"
+            state={{ from: '/quote' }}
+            className="w-full max-w-xs rounded-full bg-brand-500 py-3 font-semibold text-white transition-colors hover:bg-brand-600"
+          >
+            Sign in or create account
+          </Link>
+          <p className="text-xs text-slate-400">
+            Prefer a DM? Message {INSTAGRAM.handle} directly — no account needed.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   if (submitted) {
     return (

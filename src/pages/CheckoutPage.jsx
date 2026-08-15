@@ -7,6 +7,7 @@ import { insertOrder, notifyOrder, supabase } from '../lib/supabaseClient.js';
 import { isPaymentConfigured, payWithRazorpay } from '../lib/payments.js';
 import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useCampaignDiscount } from '../lib/campaigns.js';
 
 const inputClass =
   'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition-colors focus:border-brand-500';
@@ -14,6 +15,7 @@ const inputClass =
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
   const { user, profile } = useAuth();
+  const { campaign, eligible, discountPct } = useCampaignDiscount();
   const navigate = useNavigate();
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState(null);
@@ -43,8 +45,10 @@ export default function CheckoutPage() {
       });
   }, []);
 
-  const shipping = computeShipping(form.pincode, subtotal);
-  const total = subtotal + (shipping?.cost ?? 0);
+  const discountAmount = eligible ? Math.round(subtotal * discountPct) : 0;
+  const discountedSubtotal = subtotal - discountAmount;
+  const shipping = computeShipping(form.pincode, discountedSubtotal);
+  const total = discountedSubtotal + (shipping?.cost ?? 0);
   const pincodeInvalid = form.pincode.length === 6 && !isValidPincode(form.pincode);
 
   const handleSubmit = async (e) => {
@@ -88,9 +92,10 @@ export default function CheckoutPage() {
         id: orderId,
         status: 'placed',
         items,
-        subtotal,
+        subtotal: discountedSubtotal,
         shipping_cost: shipping.cost,
         total,
+        ...(discountAmount > 0 ? { metadata: { campaign_id: campaign?.id, campaign_name: campaign?.name, discount_amount: discountAmount, discount_pct: campaign?.discount_percent } } : {}),
         customer_name: form.name,
         phone: form.phone,
         email: form.email || null,
@@ -265,6 +270,12 @@ export default function CheckoutPage() {
               <dt>Subtotal</dt>
               <dd className="font-medium text-slate-900">{formatINR(subtotal)}</dd>
             </div>
+            {eligible && discountAmount > 0 && (
+              <div className="flex justify-between text-emerald-700">
+                <dt>🇮🇳 Independence Day {campaign.discount_percent}% off</dt>
+                <dd className="font-semibold">−{formatINR(discountAmount)}</dd>
+              </div>
+            )}
             <div className="flex justify-between text-slate-600">
               <dt>Shipping{shipping ? ` — ${shipping.label}` : ''}</dt>
               <dd className="font-medium text-slate-900">
