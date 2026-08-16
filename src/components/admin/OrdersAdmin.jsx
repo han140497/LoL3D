@@ -193,8 +193,7 @@ export default function OrdersAdmin() {
       .order('created_at', { ascending: false })
       .limit(100)
       .then(({ data, error: e }) => (e ? setError(e.message) : setOrders(data)));
-      
-    // Fetch UPI ID from settings
+
     supabase
       .from('store_settings')
       .select('upi_id')
@@ -203,6 +202,19 @@ export default function OrdersAdmin() {
       .then(({ data }) => {
         if (data?.upi_id) setUpiId(data.upi_id);
       });
+
+    // Live updates — re-stamp the changed order in local state when
+    // a customer reports payment or an admin updates status.
+    const channel = supabase
+      .channel('orders-live')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
+        setOrders((prev) =>
+          prev ? prev.map((o) => (o.id === payload.new.id ? { ...o, ...payload.new } : o)) : prev,
+        );
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const handleStatusChange = (id, status) =>

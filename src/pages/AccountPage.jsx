@@ -31,6 +31,7 @@ export default function AccountPage() {
   const { user, profile, loading, configured, signOut } = useAuth();
   const [orders, setOrders] = useState(null);
   const [quotes, setQuotes] = useState(null);
+  const [sculptures, setSculptures] = useState(null);
   const [upiId, setUpiId] = useState('');
   const [reporting, setReporting] = useState(null); // id of order being reported
 
@@ -50,6 +51,13 @@ export default function AccountPage() {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => setQuotes(data ?? []));
+
+    supabase
+      .from('sculpture_requests')
+      .select('id, created_at, status, style, notes, metadata')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setSculptures(data ?? []));
 
     supabase
       .from('store_settings')
@@ -237,6 +245,44 @@ export default function AccountPage() {
                   <span className="text-slate-500">Quoted price: </span>
                   <span className="font-semibold text-slate-900">{formatINR(q.metadata.quoted_price)}</span>
                   {q.metadata?.admin_message && <span className="text-slate-500"> · {q.metadata.admin_message}</span>}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <h2 className="mt-12 text-xl font-semibold text-slate-900">Custom Sculpture Requests</h2>
+      {sculptures === null ? (
+        <p className="mt-4 text-slate-500">Loading requests…</p>
+      ) : sculptures.length === 0 ? (
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-8 text-center">
+          <p className="text-slate-500">No sculpture requests yet.</p>
+          <Link
+            to="/sculptures"
+            className="mt-4 inline-block rounded-full bg-brand-500 px-6 py-2.5 font-semibold text-white hover:bg-brand-600"
+          >
+            Order a Sculpture
+          </Link>
+        </div>
+      ) : (
+        <ul className="mt-4 space-y-3">
+          {sculptures.map((s) => (
+            <li key={s.id} className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm text-slate-500">
+                  {new Date(s.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {' · '}#{s.id.slice(0, 8)}
+                </span>
+                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${QUOTE_STATUS_STYLES[s.status] ?? QUOTE_STATUS_STYLES.new}`}>
+                  {s.status.replace('_', ' ')}
+                </span>
+              </div>
+              <p className="mt-2 text-slate-700 text-sm capitalize">{s.style?.replace(/-/g, ' ')}{s.notes ? ` · ${s.notes}` : ''}</p>
+              {s.metadata?.quoted_price != null && (
+                <p className="mt-2 text-sm">
+                  <span className="text-slate-500">Quoted price: </span>
+                  <span className="font-semibold text-slate-900">{formatINR(s.metadata.quoted_price)}</span>
+                  {s.metadata?.admin_message && <span className="text-slate-500"> · {s.metadata.admin_message}</span>}
                 </p>
               )}
             </li>

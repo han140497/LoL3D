@@ -83,9 +83,9 @@ Deno.serve(async (req) => {
 
     const { data: order, error } = await admin.from('orders').select('*').eq('id', order_id).maybeSingle();
     if (error || !order) return json({ error: 'Order not found' }, 404);
-    if (!order.email) return json({ ok: true, emailed: false, reason: 'no_email_on_order' });
 
     if (kind === 'confirmation') {
+      if (!order.email) return json({ ok: true, emailed: false, reason: 'no_email_on_order' });
       if (order.metadata?.confirmation_sent) return json({ ok: true, emailed: false, reason: 'already_sent' });
       const copy = order.status === 'paid' ? STATUS_COPY.paid : STATUS_COPY.placed;
       const result = await sendEmail(order.email, `${copy.subject} — LoL3D order #${order.id.slice(0, 8)}`,
@@ -129,6 +129,8 @@ Deno.serve(async (req) => {
     if (!userData.user) return json({ error: 'Sign in required' }, 401);
     const { data: profile } = await admin.from('profiles').select('is_admin').eq('id', userData.user.id).maybeSingle();
     if (!profile?.is_admin) return json({ error: 'Admins only' }, 403);
+
+    if (!order.email) return json({ ok: true, emailed: false, reason: 'no_email_on_order' });
 
     if (kind === 'payment_confirmed') {
       const subject = `Payment received — LoL3D order #${order.id.slice(0, 8)}`;
