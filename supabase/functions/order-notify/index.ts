@@ -59,10 +59,13 @@ async function sendEmail(to: string, subject: string, html: string) {
   const apiKey = Deno.env.get('RESEND_API_KEY');
   if (!apiKey) return { sent: false, reason: 'email_not_configured' };
   const from = Deno.env.get('EMAIL_FROM') ?? 'LoL3D <onboarding@resend.dev>';
+  const bcc = Deno.env.get('EMAIL_BCC_ADMIN');
+  const body: Record<string, unknown> = { from, to, subject, html };
+  if (bcc) body.bcc = bcc;
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from, to, subject, html }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
