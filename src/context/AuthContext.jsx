@@ -23,12 +23,16 @@ export function AuthProvider({ children }) {
       setUser(data.session?.user ?? null);
       setLoading(false);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN') {
-        // Claim guest orders first so Account page sees them on initial load
-        await supabase.rpc('claim_guest_orders').catch(() => {});
-      }
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      if (event === 'SIGNED_IN') {
+        // Claim guest orders so the Account page sees them. Must run OUTSIDE this
+        // callback: Supabase holds the auth lock while the callback runs, and any
+        // supabase call awaited here would deadlock it (sign-in never resolves).
+        setTimeout(() => {
+          supabase.rpc('claim_guest_orders').catch(() => {});
+        }, 0);
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, []);
