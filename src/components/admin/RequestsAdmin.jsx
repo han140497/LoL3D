@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { supabase, notifyQuote, insertOrder } from '../../lib/supabaseClient.js';
 import { SCULPTURE_STYLES, formatINR } from '../../lib/constants.js';
 
+const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s ?? '').trim());
+
 const inputClass =
   'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-brand-500';
 
@@ -156,7 +158,8 @@ export default function RequestsAdmin() {
       total: price,
       customer_name: converting.name,
       phone: converting.contact,
-      email: null,
+      email: isEmail(converting.contact) ? converting.contact : null,
+      user_id: converting.user_id ?? null,
       address_line1: 'Custom Request',
       city: convertForm.city || 'Unknown',
       state: 'TBD',

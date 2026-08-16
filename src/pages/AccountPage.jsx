@@ -46,7 +46,7 @@ export default function AccountPage() {
 
     supabase
       .from('quote_requests')
-      .select('id, created_at, status, idea')
+      .select('id, created_at, status, idea, metadata')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => setQuotes(data ?? []));
@@ -232,6 +232,13 @@ export default function AccountPage() {
                 </span>
               </div>
               <p className="mt-2 text-slate-700 text-sm line-clamp-2">{q.idea}</p>
+              {q.metadata?.quoted_price != null && (
+                <p className="mt-2 text-sm">
+                  <span className="text-slate-500">Quoted price: </span>
+                  <span className="font-semibold text-slate-900">{formatINR(q.metadata.quoted_price)}</span>
+                  {q.metadata?.admin_message && <span className="text-slate-500"> · {q.metadata.admin_message}</span>}
+                </p>
+              )}
             </li>
           ))}
         </ul>
