@@ -20,9 +20,17 @@ const PAYMENT_STYLES = {
   refunded: 'bg-slate-200 text-slate-600',
 };
 
+const QUOTE_STATUS_STYLES = {
+  new: 'bg-slate-200 text-slate-600',
+  quoted: 'bg-blue-100 text-blue-700',
+  accepted: 'bg-emerald-100 text-emerald-700',
+  declined: 'bg-red-100 text-red-600',
+};
+
 export default function AccountPage() {
   const { user, profile, loading, configured, signOut } = useAuth();
   const [orders, setOrders] = useState(null);
+  const [quotes, setQuotes] = useState(null);
   const [upiId, setUpiId] = useState('');
   const [reporting, setReporting] = useState(null); // id of order being reported
 
@@ -35,7 +43,14 @@ export default function AccountPage() {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => setOrders(data ?? []));
-      
+
+    supabase
+      .from('quote_requests')
+      .select('id, created_at, status, idea')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setQuotes(data ?? []));
+
     supabase
       .from('store_settings')
       .select('upi_id')
@@ -113,7 +128,7 @@ export default function AccountPage() {
         </div>
       </div>
 
-      <h2 className="mt-10 text-xl font-semibold text-slate-900">Your orders</h2>
+      <h2 className="mt-10 text-xl font-semibold text-slate-900">Orders</h2>
       {orders === null ? (
         <p className="mt-4 text-slate-500">Loading orders…</p>
       ) : orders.length === 0 ? (
@@ -186,6 +201,37 @@ export default function AccountPage() {
                   </div>
                 </div>
               )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <h2 className="mt-12 text-xl font-semibold text-slate-900">Custom Print Requests</h2>
+      {quotes === null ? (
+        <p className="mt-4 text-slate-500">Loading requests…</p>
+      ) : quotes.length === 0 ? (
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-8 text-center">
+          <p className="text-slate-500">No custom print requests yet.</p>
+          <Link
+            to="/quote"
+            className="mt-4 inline-block rounded-full bg-brand-500 px-6 py-2.5 font-semibold text-white hover:bg-brand-600"
+          >
+            Submit an Idea
+          </Link>
+        </div>
+      ) : (
+        <ul className="mt-4 space-y-3">
+          {quotes.map((q) => (
+            <li key={q.id} className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm text-slate-500">
+                  {new Date(q.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {' · '}#{q.id.slice(0, 8)}
+                </span>
+                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${QUOTE_STATUS_STYLES[q.status] ?? QUOTE_STATUS_STYLES.new}`}>
+                  {q.status}
+                </span>
+              </div>
+              <p className="mt-2 text-slate-700 text-sm line-clamp-2">{q.idea}</p>
             </li>
           ))}
         </ul>
