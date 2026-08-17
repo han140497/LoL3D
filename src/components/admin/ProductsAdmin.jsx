@@ -2,10 +2,22 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase, uploadProductImage, deleteProductImage } from '../../lib/supabaseClient.js';
 import { formatINR, PRICING } from '../../lib/constants.js';
 import { calculateProductPrice } from '../../lib/pricing.js';
+import { normalizeQuillHtml } from '../../lib/richText.js';
 import { useCatalog } from '../../context/CatalogContext.jsx';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 const inputClass =
   'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-brand-500';
+
+const quillModules = {
+  toolbar: [
+    ['bold', 'italic', 'underline'],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    ['link'],
+    ['clean'],
+  ],
+};
 
 const slugify = (name) =>
   name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -86,6 +98,11 @@ function ProductForm({ product, onSaved, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const descriptionText = form.description.replace(/<[^>]*>/g, '').trim();
+    if (!descriptionText) {
+      setError('Description is required.');
+      return;
+    }
     if (!finalPrice || finalPrice <= 0) {
       setError('Enter filament weight + print time to auto-calculate a price, or set a manual price override.');
       return;
@@ -105,7 +122,7 @@ function ProductForm({ product, onSaved, onCancel }) {
       labor_time_hours: form.labor_time_hours !== '' ? Number(form.labor_time_hours) : 0,
       markup_override: form.markup_percent !== '' ? Number(form.markup_percent) / 100 : null,
       dimensions: form.dimensions || null,
-      description: form.description,
+      description: normalizeQuillHtml(form.description),
       image_url: images[0] || null,
       images,
       featured: form.featured,
@@ -261,8 +278,16 @@ function ProductForm({ product, onSaved, onCancel }) {
       </div>
 
       <div className="mt-3">
-        <label htmlFor="p-description" className="mb-1 block text-xs font-medium text-slate-500">Description</label>
-        <textarea id="p-description" required placeholder="What is it, what's it good for?" rows={2} value={form.description} onChange={set('description')} className={inputClass} />
+        <label className="mb-1 block text-xs font-medium text-slate-500">Description</label>
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <ReactQuill
+            theme="snow"
+            value={form.description}
+            onChange={(html) => setForm((f) => ({ ...f, description: html }))}
+            modules={quillModules}
+            placeholder="What is it, what's it good for?"
+          />
+        </div>
       </div>
       <div className="mt-3 flex items-center justify-between">
         <label className="flex items-center gap-2 text-sm text-slate-600">

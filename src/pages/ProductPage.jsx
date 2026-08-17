@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import { INSTAGRAM, formatINR } from '../lib/constants.js';
+import { extractSpecTables, normalizeQuillHtml } from '../lib/richText.js';
 import { useCatalog } from '../context/CatalogContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import ProductImage from '../components/shared/ProductImage.jsx';
 import InstagramButton from '../components/shared/InstagramButton.jsx';
+import SpecTable from '../components/shared/SpecTable.jsx';
 
 export default function ProductPage() {
   const { slug } = useParams();
@@ -15,6 +18,10 @@ export default function ProductPage() {
   const [justAdded, setJustAdded] = useState(false);
   const [activeImage, setActiveImage] = useState(null);
   useEffect(() => setActiveImage(null), [slug]);
+  const description = useMemo(
+    () => extractSpecTables(DOMPurify.sanitize(normalizeQuillHtml(product?.description ?? ''))),
+    [product?.description],
+  );
 
   if (loading) {
     return (
@@ -82,10 +89,16 @@ export default function ProductPage() {
           )}
         </div>
 
-        <div className="py-2">
+        <div className="min-w-0 py-2">
           <p className="text-sm font-semibold uppercase tracking-widest text-brand-600">{categoryName}</p>
           <h1 className="mt-2 text-3xl font-extrabold text-slate-900 sm:text-4xl">{product.name}</h1>
-          <p className="mt-4 text-lg text-slate-600">{product.description}</p>
+          <div className="mt-4 break-words text-lg text-slate-600 [&_p]:mt-2 [&_p:first-child]:mt-0 [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mt-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-brand-600 [&_a]:underline [&_strong]:font-semibold">
+            {description.segments.map((seg, i) =>
+              i % 2 === 0
+                ? seg && <div key={i} dangerouslySetInnerHTML={{ __html: seg }} />
+                : <SpecTable key={i} rows={description.tables[Number(seg)]} />,
+            )}
+          </div>
 
           <dl className="mt-8 space-y-4 border-t border-slate-200 pt-6">
             <div className="flex justify-between">
