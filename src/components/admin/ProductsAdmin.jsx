@@ -18,7 +18,7 @@ const EMPTY = {
 };
 
 // One form for both adding and editing. `product` = null → add mode.
-function ProductForm({ product, onSaved, onCancel }) {
+function ProductForm({ product, rates, onSaved, onCancel }) {
   const { categories } = useCatalog();
   const [filaments, setFilaments] = useState([]);
   const [form, setForm] = useState(() => {
@@ -91,7 +91,12 @@ function ProductForm({ product, onSaved, onCancel }) {
     laborTimeHours: form.labor_time_hours || 0,
     markupPercent: form.markup_percent !== '' ? Number(form.markup_percent) / 100 : undefined,
     filamentCostPerKg: selectedFilament ? Number(selectedFilament.price_per_kg) : undefined,
-  }), [form.filament_weight_g, form.print_time_hours, form.labor_time_hours, form.markup_percent, selectedFilament]);
+    printerPowerKw: rates?.printer_power_kw,
+    electricityRatePerKwh: rates?.electricity_rate_per_kwh,
+    laborRatePerHour: rates?.labor_rate_per_hour,
+    packagingCostFlat: rates?.packaging_cost,
+    wasteAllowancePercent: rates?.waste_allowance_percent,
+  }), [form.filament_weight_g, form.print_time_hours, form.labor_time_hours, form.markup_percent, selectedFilament, rates]);
 
   const finalPrice = form.price_override !== '' ? Number(form.price_override) : calc?.roundedPrice;
 
@@ -263,14 +268,21 @@ function ProductForm({ product, onSaved, onCancel }) {
           </div>
           <div>
             <label htmlFor="p-markup" className="mb-1 block text-xs font-medium text-slate-500">
-              Markup % (blank = default {Math.round(PRICING.defaultMarkupPercent * 100)}%)
+              Markup % (blank = default {Math.round((rates?.default_markup_percent ?? PRICING.defaultMarkupPercent) * 100)}%)
             </label>
-            <input id="p-markup" type="number" min="0" step="1" placeholder={String(Math.round(PRICING.defaultMarkupPercent * 100))} value={form.markup_percent} onChange={set('markup_percent')} className={inputClass} />
+            <input id="p-markup" type="number" min="0" step="1" placeholder={String(Math.round((rates?.default_markup_percent ?? PRICING.defaultMarkupPercent) * 100))} value={form.markup_percent} onChange={set('markup_percent')} className={inputClass} />
           </div>
         </div>
 
+        {rates && (
+          <p className="mt-2 text-xs text-slate-400">
+            Using: {rates.printer_power_kw} kW printer · ₹{rates.electricity_rate_per_kwh}/kWh · ₹{rates.labor_rate_per_hour}/hr labor · ₹{rates.packaging_cost} packaging · {Math.round(rates.waste_allowance_percent * 100)}% waste
+            {' '}— <a href="#" onClick={(e) => { e.preventDefault(); document.querySelector('[data-tab="settings"]')?.click(); }} className="text-brand-500 hover:underline">edit in Settings</a>
+          </p>
+        )}
+
         {calc ? (
-          <p className="mt-3 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-600">
             Material {formatINR(calc.materialCost)} + electricity {formatINR(calc.electricityCost)} + labor {formatINR(calc.laborCost)}
             {' '}+ waste {formatINR(calc.wasteCost)} + packaging {formatINR(calc.packagingCost)} = cost {formatINR(calc.totalCost)}.{' '}
             <span className="font-semibold text-slate-900">
@@ -278,7 +290,7 @@ function ProductForm({ product, onSaved, onCancel }) {
             </span>
           </p>
         ) : (
-          <p className="mt-3 text-sm text-slate-500">Enter filament weight and print time to see the suggested price.</p>
+          <p className="mt-2 text-sm text-slate-500">Enter filament weight and print time to see the suggested price.</p>
         )}
 
         <div className="mt-3">
@@ -316,6 +328,7 @@ export default function ProductsAdmin() {
   const [products, setProducts] = useState(null);
   const [editing, setEditing] = useState(null); // product being edited, or null
   const [error, setError] = useState(null);
+  const [rates, setRates] = useState(null);
 
   const load = () => {
     supabase
@@ -325,6 +338,13 @@ export default function ProductsAdmin() {
       .then(({ data, error: e }) => (e ? setError(e.message) : setProducts(data)));
   };
   useEffect(load, []);
+
+  useEffect(() => {
+    supabase.from('store_settings').select(
+      'printer_power_kw, electricity_rate_per_kwh, labor_rate_per_hour, packaging_cost, waste_allowance_percent, default_markup_percent'
+    ).eq('id', 1).single()
+      .then(({ data }) => { if (data) setRates(data); });
+  }, []);
 
   const toggle = async (product, field) => {
     const { error: e } = await supabase
@@ -349,6 +369,7 @@ export default function ProductsAdmin() {
       <ProductForm
         key={editing?.id ?? 'new'}
         product={editing}
+        rates={rates}
         onSaved={() => { setEditing(null); load(); }}
         onCancel={() => setEditing(null)}
       />
