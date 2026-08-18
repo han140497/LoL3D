@@ -8,15 +8,16 @@ import { PRICING } from './constants.js';
 //   total     = material + power + labor + waste + packaging
 //   suggested = total * (1 + markup)
 //   rounded   = suggested rounded to the nearest ₹10 (MROUND)
-export function calculateProductPrice({ filamentWeightG, printTimeHours, laborTimeHours = 0, markupPercent }) {
+export function calculateProductPrice({ filamentWeightG, printTimeHours, laborTimeHours = 0, markupPercent, filamentCostPerKg }) {
   const grams = Number(filamentWeightG);
   const hours = Number(printTimeHours);
   if (!Number.isFinite(grams) || grams <= 0 || !Number.isFinite(hours) || hours <= 0) return null;
 
   const labor = Number.isFinite(Number(laborTimeHours)) ? Number(laborTimeHours) : 0;
   const markup = Number.isFinite(Number(markupPercent)) ? Number(markupPercent) : PRICING.defaultMarkupPercent;
+  const costPerKg = Number.isFinite(Number(filamentCostPerKg)) ? Number(filamentCostPerKg) : PRICING.filamentCostPerKg;
 
-  const materialCost = (grams / 1000) * PRICING.filamentCostPerKg;
+  const materialCost = (grams / 1000) * costPerKg;
   const electricityCost = hours * PRICING.printerPowerKw * PRICING.electricityRatePerKwh;
   const laborCost = labor * PRICING.laborRatePerHour;
   const wasteCost = (materialCost + electricityCost) * PRICING.wasteAllowancePercent;

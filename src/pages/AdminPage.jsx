@@ -9,6 +9,7 @@ import OrdersAdmin from '../components/admin/OrdersAdmin.jsx';
 import CategoriesAdmin from '../components/admin/CategoriesAdmin.jsx';
 import SettingsAdmin from '../components/admin/SettingsAdmin.jsx';
 import CampaignsAdmin from '../components/admin/CampaignsAdmin.jsx';
+import FilamentsAdmin from '../components/admin/FilamentsAdmin.jsx';
 
 const BAR = '#ea580c'; // single sequential hue (≥3:1 on white) — one series per chart, direct-labeled
 
@@ -133,6 +134,7 @@ export default function AdminPage() {
     { id: 'categories', label: 'Categories' },
     { id: 'requests', label: 'Requests' },
     { id: 'campaigns', label: 'Campaigns' },
+    { id: 'filaments', label: 'Filaments' },
     { id: 'settings', label: 'Settings' },
   ];
 
@@ -190,6 +192,11 @@ export default function AdminPage() {
       {tab === 'campaigns' && (
         <div className="mt-6">
           {configured ? <CampaignsAdmin /> : <p className="text-slate-500">Connect Supabase to manage campaigns.</p>}
+        </div>
+      )}
+      {tab === 'filaments' && (
+        <div className="mt-6">
+          {configured ? <FilamentsAdmin /> : <p className="text-slate-500">Connect Supabase to manage filaments.</p>}
         </div>
       )}
       {tab === 'settings' && (

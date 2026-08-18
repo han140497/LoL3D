@@ -12,7 +12,7 @@ const slugify = (name) =>
 
 const EMPTY = {
   name: '', category: 'functional', petg_surcharge: '',
-  filament_weight_g: '', print_time_hours: '', labor_time_hours: '', markup_percent: '',
+  filament_id: '', filament_weight_g: '', print_time_hours: '', labor_time_hours: '', markup_percent: '',
   price_override: '',
   dimensions: '', description: '', featured: false,
 };
@@ -20,6 +20,7 @@ const EMPTY = {
 // One form for both adding and editing. `product` = null → add mode.
 function ProductForm({ product, onSaved, onCancel }) {
   const { categories } = useCatalog();
+  const [filaments, setFilaments] = useState([]);
   const [form, setForm] = useState(() => {
     if (!product) return EMPTY;
     const petg = (product.materials ?? []).find((m) => m.type === 'PETG');
@@ -27,6 +28,7 @@ function ProductForm({ product, onSaved, onCancel }) {
       name: product.name,
       category: product.category,
       petg_surcharge: petg ? String(petg.surcharge) : '',
+      filament_id: product.filament_id ?? '',
       filament_weight_g: product.filament_weight_g != null ? String(product.filament_weight_g) : '',
       print_time_hours: product.print_time_hours != null ? String(product.print_time_hours) : '',
       labor_time_hours: product.labor_time_hours ? String(product.labor_time_hours) : '',
@@ -39,6 +41,12 @@ function ProductForm({ product, onSaved, onCancel }) {
       featured: product.featured,
     };
   });
+
+  useEffect(() => {
+    supabase.from('filaments').select('id, brand, type, color, price_per_kg').eq('active', true)
+      .order('brand').order('type')
+      .then(({ data }) => { if (data) setFilaments(data); });
+  }, []);
   // Gallery photos: uploaded straight from disk instead of pasting a link.
   // The first one is the primary photo shown everywhere except the product page.
   const [images, setImages] = useState(() => {
@@ -75,12 +83,15 @@ function ProductForm({ product, onSaved, onCancel }) {
   const set = (field) => (e) =>
     setForm((f) => ({ ...f, [field]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
+  const selectedFilament = filaments.find((f) => f.id === form.filament_id) ?? null;
+
   const calc = useMemo(() => calculateProductPrice({
     filamentWeightG: form.filament_weight_g,
     printTimeHours: form.print_time_hours,
     laborTimeHours: form.labor_time_hours || 0,
     markupPercent: form.markup_percent !== '' ? Number(form.markup_percent) / 100 : undefined,
-  }), [form.filament_weight_g, form.print_time_hours, form.labor_time_hours, form.markup_percent]);
+    filamentCostPerKg: selectedFilament ? Number(selectedFilament.price_per_kg) : undefined,
+  }), [form.filament_weight_g, form.print_time_hours, form.labor_time_hours, form.markup_percent, selectedFilament]);
 
   const finalPrice = form.price_override !== '' ? Number(form.price_override) : calc?.roundedPrice;
 
@@ -100,6 +111,7 @@ function ProductForm({ product, onSaved, onCancel }) {
       name: form.name,
       category: form.category,
       price_base: finalPrice,
+      filament_id: form.filament_id || null,
       filament_weight_g: form.filament_weight_g !== '' ? Number(form.filament_weight_g) : null,
       print_time_hours: form.print_time_hours !== '' ? Number(form.print_time_hours) : null,
       labor_time_hours: form.labor_time_hours !== '' ? Number(form.labor_time_hours) : 0,
@@ -215,6 +227,27 @@ function ProductForm({ product, onSaved, onCancel }) {
 
       <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Price calculator</p>
+        <div className="mt-3">
+          <label htmlFor="p-filament" className="mb-1 block text-xs font-medium text-slate-500">
+            Filament brand &amp; type
+            {selectedFilament && (
+              <span className="ml-1 font-normal text-slate-400">— {formatINR(selectedFilament.price_per_kg)}/kg</span>
+            )}
+          </label>
+          <select id="p-filament" value={form.filament_id} onChange={set('filament_id')} className={inputClass}>
+            <option value="">— Use default rate ({formatINR(PRICING.filamentCostPerKg)}/kg) —</option>
+            {filaments.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.brand} · {f.type}{f.color ? ` (${f.color})` : ''} — {formatINR(f.price_per_kg)}/kg
+              </option>
+            ))}
+          </select>
+          {filaments.length === 0 && (
+            <p className="mt-1 text-xs text-slate-400">
+              No filaments in library yet — add some in the Filaments tab.
+            </p>
+          )}
+        </div>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <label htmlFor="p-grams" className="mb-1 block text-xs font-medium text-slate-500">Filament used (g)</label>
