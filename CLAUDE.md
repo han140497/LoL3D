@@ -56,6 +56,14 @@ When adding a new Supabase call, follow this same pattern — check `isSupabaseC
 - Custom sculptures (`/sculptures`): photo upload → `sculpture-photos` bucket, style pick, request lands in `sculpture_requests`, worked from the admin Requests tab through statuses `new → modeling → preview_sent → confirmed → printed`. No payment up front.
 - Custom work (`/quote`): optional STL/OBJ/3MF/STEP upload → `quote-uploads` bucket, request lands in `quote_requests`.
 
+### Product descriptions (rich text)
+
+- Admins edit descriptions with a Quill WYSIWYG editor (`react-quill-new`, in `ProductsAdmin.jsx`); the customer-facing `ProductPage.jsx` renders the stored HTML through `DOMPurify.sanitize()` — never render `product.description` raw.
+- **Controlled-editor gotcha**: `ReactQuill`'s `onChange` must feed Quill's HTML back into `value` unmodified. Post-processing the string before round-tripping it through the controlled `value` prop confuses Quill's internal reconciliation and silently drops characters while typing (observed: spaces vanishing mid-sentence). Any cleanup has to happen once, at save time — not in `onChange`.
+- `normalizeQuillHtml()` (`src/lib/richText.js`) converts the literal `&nbsp;` entities Quill's HTML export inserts between ordinary words back to regular spaces — left alone, a non-breaking space blocks normal line-wrapping and long descriptions won't wrap at word boundaries. Applied once at save time (`ProductsAdmin.jsx`'s `handleSubmit`) and again defensively at render (`ProductPage.jsx`), since rows saved before this fix may already have it baked in.
+- Some legacy descriptions have a raw `<table>` pasted directly into the HTML (predates the Quill editor, which has no table tool). `extractSpecTables()` (`src/lib/richText.js`) pulls any `<table>` out of the sanitized description and hands its rows to `SpecTable` (`src/components/shared/SpecTable.jsx`), which renders them as a borderless key/value list with a 2-line clamp + "View more" toggle per row — a bare `<table>` is never rendered directly, since it renders with unstyled borders and an unconstrained column width.
+- The description container needs `min-w-0` on its CSS-grid ancestor (`ProductPage.jsx`) plus `break-words` on itself — without both, a single long unbroken token (a long word, a pasted URL) forces the grid column wider than its track and causes page-wide horizontal scroll.
+
 ### Analytics
 
 Every product click, Instagram link, category link, and "Get a Quote" click must log an event via `logEvent(EVENT_TYPES.X, {...})` from `src/lib/analytics.js`, or by using the shared `InstagramButton`/`TrackedLink` components — don't wire raw `onClick` logging by hand. Events are insert-only for the anon key (RLS), so analytics data can't be read or altered from the browser. UTM params are captured per visit and attached to every event (used to attribute Instagram-bio traffic).
